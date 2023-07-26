@@ -3,19 +3,21 @@ import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
 // 摩擦力系数 0-1
-const kFriction = 0.5;
+const kFriction = 0.8;
 // 力缩放系数 0-1
 const kDamping = 0.1;
 // 弹力系数 >0
 const kElasticity = 1.0;
 // 斥力系数 >0
-const kRepulsion = 10.0;
+const kRepulsion = 15.0;
 // 最低速度 >0
-const kMinVelocity = 0.5;
+const kMinVelocity = 2;
+// 最低力度 >0
+const kMinForce = 3;
 
 class Node<T> {
   final T data;
-  Vector2 position = Vector2.random();
+  Vector2 position = (Vector2.random() - Vector2(0.5, 0.5)) * 200;
   Vector2 force = Vector2.zero();
   Vector2 velocity = Vector2.zero();
 
@@ -35,17 +37,18 @@ class Node<T> {
   bool updatePosition({double damping = kDamping}) {
     final friction = -velocity.normalized() * kFriction; // 计算摩擦力
     velocity += force * damping + friction; // 更新速度
-    position += velocity; // 更新位置
-
-    final angle = velocity.angleTo(force);
-    print("angle: $angle");
-
-    force = Vector2.zero();
-    if (velocity.length < kMinVelocity) {
-      print("final velocity: ${velocity.length}");
+    if (velocity.length < kMinVelocity && force.length < kMinForce) {
+      // print("final velocity: ${velocity.length}");
       velocity = Vector2.zero();
+      force = Vector2.zero();
       return false;
     }
+    position += velocity; // 更新位置
+
+    // final angle = velocity.angleTo(force);
+    // print("angle: $angle");
+
+    force = Vector2.zero(); // 清空力
     return true;
   }
 
@@ -73,24 +76,26 @@ class Node<T> {
 class Edge {
   final Node a;
   final Node b;
+  final double length = 50.0;
 
   Edge(this.a, this.b);
 
   double get distance => a.position.distanceTo(b.position);
 
-  double get angel {
-    final actualAngel = (a.position - b.position).angleToSigned(Vector2(0, -1));
-    if (actualAngel >= 0 && actualAngel <= pi) {
-      return actualAngel - pi / 2;
+  double get angle {
+    final actualAngle = (a.position - b.position).angleToSigned(Vector2(0, -1));
+    // print("actualAngle: $actualAngle");
+    if (actualAngle >= 0 && actualAngle <= pi) {
+      return actualAngle - pi / 2;
     } else {
-      return - actualAngel + pi / 2;
+      return actualAngle + pi / 2;
     }
   }
 
   // 胡克定律计算引力
   double calculateAttractionForce({double k = kElasticity}) {
     final distance = this.distance;
-    final deformation = distance;
+    final deformation = distance - length;
     return k * deformation;
   }
 
@@ -103,6 +108,22 @@ class Edge {
   Vector2 calculateAttractionForceDirectionB() {
     return (a.position - b.position).normalized();
   }
+
+  @override
+  String toString() {
+    return "Edge{a: ${a.data}, b: ${b.data}, distance: $distance, angle: $angle}";
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Edge) {
+      return (a == other.a && b == other.b) || (a == other.b && b == other.a);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => a.hashCode ^ b.hashCode;
 }
 
 class ForceDirectedGraph<T> {
@@ -159,10 +180,16 @@ class ForceDirectedGraph<T> {
       edge.b.applyForce(-fa);
     }
     bool positionUpdated = false;
+    print("this: $this");
     for (final node in nodes) {
       positionUpdated |= node.updatePosition();
-      print(node);
+      // print(node);
     }
     return positionUpdated;
+  }
+
+  @override
+  String toString() {
+    return "\nnodes:\n$nodes,\nedges:\n$edges";
   }
 }
