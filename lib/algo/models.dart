@@ -2,21 +2,20 @@ import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
-// 摩擦力系数 0-1
-const kFriction = 0.8;
+// 最大静摩擦力
+const kMaxStaticFriction = 10.0;
 // 力缩放系数 0-1
-const kDamping = 0.1;
+const kScaling = 0.1;
 // 弹力系数 >0
-const kElasticity = 1.0;
+const kElasticity = 0.5;
 // 斥力系数 >0
 const kRepulsion = 15.0;
 // 最低速度 >0
-const kMinVelocity = 2;
-// 最低力度 >0
-const kMinForce = 3;
+const kMinVelocity = 5;
 
 class Node<T> {
   final T data;
+  final double mass = 1.0;
   Vector2 position = (Vector2.random() - Vector2(0.5, 0.5)) * 200;
   Vector2 force = Vector2.zero();
   Vector2 velocity = Vector2.zero();
@@ -34,21 +33,28 @@ class Node<T> {
     this.force += force;
   }
 
-  bool updatePosition({double damping = kDamping}) {
-    final friction = -velocity.normalized() * kFriction; // 计算摩擦力
-    velocity += force * damping + friction; // 更新速度
-    if (velocity.length < kMinVelocity && force.length < kMinForce) {
-      // print("final velocity: ${velocity.length}");
-      velocity = Vector2.zero();
-      force = Vector2.zero();
-      return false;
+  /// scaling: 位移缩放系数 0-1
+  /// return: 是否处于运动状态
+  /// 在一个时间步长内，根据力学计算节点的位移，
+  /// 还需要考虑当前节点是否静止，然后考虑静摩擦力，考虑动摩擦力
+  /// 静止状态下和运动状态下的计算方式应该不同
+  bool updatePosition({double scaling = kScaling}) {
+    if (velocity.length < kMinVelocity) {
+      // 静止状态
+      if (force.length < kMaxStaticFriction) {
+        // 静止状态下力度太小，不需要计算
+        velocity = Vector2.zero();
+        force = Vector2.zero();
+        return false;
+      }
     }
-    position += velocity; // 更新位置
 
-    // final angle = velocity.angleTo(force);
-    // print("angle: $angle");
-
-    force = Vector2.zero(); // 清空力
+    // 运动状态
+    final friction = -velocity.normalized() * kMaxStaticFriction;
+    force += friction;
+    velocity += force / mass;
+    position += velocity * scaling;
+    force = Vector2.zero();
     return true;
   }
 
@@ -84,7 +90,6 @@ class Edge {
 
   double get angle {
     final actualAngle = (a.position - b.position).angleToSigned(Vector2(0, -1));
-    // print("actualAngle: $actualAngle");
     if (actualAngle >= 0 && actualAngle <= pi) {
       return actualAngle - pi / 2;
     } else {
@@ -158,7 +163,6 @@ class ForceDirectedGraph<T> {
   void updateAllNodesByStep(int step) {
     for (int i = 0; i < step; i++) {
       if (!updateAllNodes()) {
-        print("break at $i");
         break;
       }
     }
@@ -180,10 +184,8 @@ class ForceDirectedGraph<T> {
       edge.b.applyForce(-fa);
     }
     bool positionUpdated = false;
-    print("this: $this");
     for (final node in nodes) {
       positionUpdated |= node.updatePosition();
-      // print(node);
     }
     return positionUpdated;
   }

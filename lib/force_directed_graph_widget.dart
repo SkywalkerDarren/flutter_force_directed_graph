@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_force_directed_graph/edge_widget.dart';
 import 'package:flutter_force_directed_graph/node_widget.dart';
 
@@ -25,13 +26,18 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
   State<ForceDirectedGraphWidget<T>> createState() => _ForceDirectedGraphState<T>();
 }
 
-class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>> {
+class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>> with SingleTickerProviderStateMixin {
   ForceDirectedGraphController<T> get controller => widget.controller;
+  late Ticker ticker;
 
   @override
   void initState() {
     super.initState();
+    ticker = createTicker((elapsed) {
+
+    });
     controller.addListener(_onControllerChange);
+    ticker.start();
   }
 
   void _onControllerChange() {
@@ -88,7 +94,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
     required this.graph,
     required Iterable<NodeWidget> nodes,
     required Iterable<EdgeWidget> edges,
-  }) : super(key: key, children: [...nodes, ...edges]);
+  }) : super(key: key, children: [...edges, ...nodes]);
 
   @override
   ForceDirectedGraphRenderObject createRenderObject(BuildContext context) {
@@ -115,9 +121,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
   ForceDirectedGraph _graph;
 
   set graph(ForceDirectedGraph value) {
-    if (_graph == value) {
-      return;
-    }
     _graph = value;
     print("markNeedsPaint");
     markNeedsPaint();
@@ -176,6 +179,35 @@ class ForceDirectedGraphRenderObject extends RenderBox
       context.canvas.restore();
     }
     context.canvas.drawCircle(Offset.zero, 3, Paint()..color = Colors.red);
+  }
+
+  @override
+  bool hitTestSelf(Offset position) {
+    print("hitTestSelf");
+    return true;
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    print("hitTestChildren, position: $position");
+    var child = lastChild;
+    while (child != null) {
+      // The x, y parameters have the top left of the node's box as the origin.
+      final childParentData = child.parentData! as ForceDirectedGraphParentData;
+      final bool isHit = result.addWithPaintOffset(
+        offset: childParentData.offset,
+        position: position,
+        hitTest: (BoxHitTestResult result, Offset transformed) {
+          assert(transformed == position - childParentData.offset);
+          return child!.hitTest(result, position: transformed);
+        },
+      );
+      if (isHit) {
+        return true;
+      }
+      child = childParentData.previousSibling;
+    }
+    return false;
   }
 }
 

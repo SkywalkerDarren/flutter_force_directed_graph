@@ -33,6 +33,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
   int nodeCount = 0;
+  Set<int> nodes = {};
 
   @override
   void initState() {
@@ -64,26 +65,27 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  final a = nodeCount;
-                  nodeCount++;
-                  final b = nodeCount;
-                  nodeCount++;
-                  controller.addEdgeByData(a, b);
+                  if (nodes.length == 2) {
+                    final a = nodes.first;
+                    final b = nodes.last;
+                    controller.addEdgeByData(a, b);
+                  }
                 },
                 child: Text('add edge'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  final data = nodeCount;
+                  final a = nodeCount;
                   nodeCount++;
-                  controller.addNode(data);
+                  controller.addNode(a);
                 },
                 child: Text('add node'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  nodeCount--;
-                  controller.deleteNodeByData(nodeCount);
+                  for (final node in nodes) {
+                    controller.deleteNodeByData(node);
+                  }
                 },
                 child: Text('delete node'),
               ),
@@ -93,12 +95,24 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ForceDirectedGraphWidget(
               controller: controller,
               nodesBuilder: (context, data) {
-                return Container(
-                  width: 24,
-                  height: 24,
-                  alignment: Alignment.center,
-                  color: Colors.red,
-                  child: Text('$data'),
+                return GestureDetector(
+                  onTap: () {
+                    print("onTap $data");
+                    setState(() {
+                      if (nodes.contains(data)) {
+                        nodes.remove(data);
+                      } else {
+                        nodes.add(data);
+                      }
+                    });
+                  },
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    color: nodes.contains(data) ? Colors.green : Colors.red,
+                    child: Text('$data'),
+                  ),
                 );
               },
               edgesBuilder: (context, a, b) {

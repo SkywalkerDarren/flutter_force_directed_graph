@@ -65,6 +65,12 @@ void main() {
         final canUpdateB = nodeB.updatePosition();
         if (!canUpdateA && !canUpdateB) {
           print('平衡, $nodeA, $nodeB, ${edge.distance}');
+
+          final a = nodeA.updatePosition();
+          final b = nodeB.updatePosition();
+          expect(b, false);
+          expect(a, false);
+
           return;
         }
         print(nodeA);

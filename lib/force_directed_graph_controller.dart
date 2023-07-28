@@ -50,11 +50,12 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     if (isUpdating) {
       return;
     }
+    print("start graph: $_graph");
     int stepLeft = 120 * 1000;
     isUpdating = true;
     while (true) {
       if (!_graph.updateAllNodes()) {
-        // print("graph: $_graph");
+        print("finished graph: $_graph");
         notifyListeners();
         break;
       }
