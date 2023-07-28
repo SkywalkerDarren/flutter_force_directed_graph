@@ -34,14 +34,26 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>> wit
   void initState() {
     super.initState();
     ticker = createTicker((elapsed) {
-
+      final isMoving = controller.update();
+      if (!isMoving) {
+        ticker.stop();
+      }
+      print("ticker: $elapsed");
     });
     controller.addListener(_onControllerChange);
-    ticker.start();
+  }
+
+  @override
+  void dispose() {
+    ticker.dispose();
+    super.dispose();
   }
 
   void _onControllerChange() {
     print("_onControllerChange");
+    if (!ticker.isTicking) {
+      ticker.start();
+    }
     setState(() {});
   }
 
@@ -143,7 +155,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
       assert(parentData.node != null || parentData.edge != null);
       final innerConstraints = constraints.loosen();
       child.layout(innerConstraints, parentUsesSize: true);
-      parentData.offset = child.size.center(Offset.zero);
     }
   }
 
@@ -151,6 +162,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   void paint(PaintingContext context, Offset offset) {
     // print("paint");
     final center = offset + size.center(Offset.zero);
+    print("center: $center");
     context.canvas.translate(center.dx, center.dy);
     // 获取children
     final children = getChildrenAsList();
@@ -158,41 +170,45 @@ class ForceDirectedGraphRenderObject extends RenderBox
       context.canvas.save();
 
       final parentData = child.parentData! as ForceDirectedGraphParentData;
+      final childCenter = child.size.center(Offset.zero);
       if (parentData.node != null) {
         final data = parentData.node!.data;
         final node = _graph.nodes.firstWhere((element) => element.data == data);
         final moveOffset = Offset(node.position.x, -node.position.y);
-        final finalOffset = -parentData.offset + moveOffset;
+        final finalOffset = -childCenter + moveOffset;
         // print("node: $node, parentOffset: ${parentData.offset}, moveOffset: $moveOffset, finalOffset: $finalOffset");
         context.paintChild(child, finalOffset);
+        parentData.offset = moveOffset + center - offset - childCenter;
+        // print("parentData.offset: ${parentData.offset}");
       } else if (parentData.edge != null) {
         final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
-        final finalOffset = -parentData.offset + moveOffset;
+        final finalOffset = -childCenter + moveOffset;
         // print("edgeCenter: $edgeCenter, edge: $edge, parentOffset: ${parentData.offset}, moveOffset: $moveOffset, finalOffset: $finalOffset");
         context.canvas.translate(moveOffset.dx, moveOffset.dy);
         context.canvas.rotate(edge.angle);
         context.canvas.translate(-moveOffset.dx, -moveOffset.dy);
         context.paintChild(child, finalOffset);
+        parentData.offset = moveOffset + center - offset - childCenter;
+        // print("parentData.offset: ${parentData.offset}");
       }
       context.canvas.restore();
     }
-    context.canvas.drawCircle(Offset.zero, 3, Paint()..color = Colors.red);
-  }
 
-  @override
-  bool hitTestSelf(Offset position) {
-    print("hitTestSelf");
-    return true;
+    // for debug
+    // context.canvas.drawCircle(Offset.zero, 3, Paint()..color = Colors.red);
+    // context.canvas.translate(-center.dx, -center.dy);
+    // for (final child in children) {
+    //   final parentData = child.parentData! as ForceDirectedGraphParentData;
+    //   context.canvas.drawCircle(parentData.offset, 3, Paint()..color = Colors.yellow);
+    // }
   }
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    print("hitTestChildren, position: $position");
     var child = lastChild;
     while (child != null) {
-      // The x, y parameters have the top left of the node's box as the origin.
       final childParentData = child.parentData! as ForceDirectedGraphParentData;
       final bool isHit = result.addWithPaintOffset(
         offset: childParentData.offset,

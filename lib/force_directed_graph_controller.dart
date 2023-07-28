@@ -68,10 +68,11 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     isUpdating = false;
   }
 
-  void update() {
+  bool update() {
     isUpdating = true;
-    _graph.updateAllNodes();
+    final isMoving = _graph.updateAllNodes();
     notifyListeners();
     isUpdating = false;
+    return isMoving;
   }
 }

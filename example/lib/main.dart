@@ -43,8 +43,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final b = nodeCount;
     nodeCount++;
     controller.addEdgeByData(a, b);
-    // controller.addEdgeByData('a', 'c');
-    // controller.addEdgeByData('a', 'd');
   }
 
   @override
@@ -70,6 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     final b = nodes.last;
                     controller.addEdgeByData(a, b);
                   }
+                  nodes.clear();
                 },
                 child: Text('add edge'),
               ),
@@ -78,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   final a = nodeCount;
                   nodeCount++;
                   controller.addNode(a);
+                  nodes.clear();
                 },
                 child: Text('add node'),
               ),
@@ -86,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   for (final node in nodes) {
                     controller.deleteNodeByData(node);
                   }
+                  nodes.clear();
                 },
                 child: Text('delete node'),
               ),
@@ -116,12 +117,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               edgesBuilder: (context, a, b) {
-                return Container(
-                  width: 80,
-                  height: 16,
-                  color: Colors.blue,
-                  alignment: Alignment.center,
-                  child: Text('$a <-> $b'),
+                return GestureDetector(
+                  onTap: () {
+                    print("onTap $a <-> $b");
+                  },
+                  child: Container(
+                    width: 80,
+                    height: 16,
+                    color: Colors.blue,
+                    alignment: Alignment.center,
+                    child: Text('$a <-> $b'),
+                  ),
                 );
               },
             ),
