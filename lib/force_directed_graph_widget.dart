@@ -29,37 +29,39 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
 
 class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     with SingleTickerProviderStateMixin {
-  ForceDirectedGraphController<T> get controller => widget.controller;
-  late Ticker ticker;
+  ForceDirectedGraphController<T> get _controller => widget.controller;
+  late Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
-    ticker = createTicker((elapsed) {
-      final isMoving = controller.graph.updateAllNodes();
-      if (!isMoving) {
-        ticker.stop();
-      }
-    });
-    controller.addListener(_onControllerChange);
+    _ticker = createTicker(_onTick);
+    _controller.addListener(_onControllerChange);
   }
 
   @override
   void dispose() {
-    ticker.dispose();
+    _ticker.dispose();
     super.dispose();
   }
 
   void _onControllerChange() {
-    if (!ticker.isTicking) {
-      ticker.start();
+    if (!_ticker.isActive) {
+      _ticker.start();
+    }
+  }
+
+  void _onTick(Duration elapsed) {
+    final isMoving = _controller.graph.updateAllNodes();
+    if (!isMoving) {
+      _ticker.stop();
     }
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final nodes = controller.graph.nodes.map((e) {
+    final nodes = _controller.graph.nodes.map((e) {
       final child = widget.nodesBuilder(context, e.data);
       if (child is NodeWidget) {
         assert(child.node == e);
@@ -71,7 +73,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       );
     });
 
-    final edges = controller.graph.edges.map((e) {
+    final edges = _controller.graph.edges.map((e) {
       final child = widget.edgesBuilder(context, e.a.data, e.b.data);
       if (child is EdgeWidget) {
         assert(child.edge == e);
@@ -87,11 +89,15 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       return Container();
     }
 
-    return ForceDirectedGraphBody(
-      controller: controller,
-      graph: widget.controller.graph,
-      nodes: nodes,
-      edges: edges,
+    return RepaintBoundary(
+      child: ClipRect(
+        child: ForceDirectedGraphBody(
+          controller: _controller,
+          graph: widget.controller.graph,
+          nodes: nodes,
+          edges: edges,
+        ),
+      ),
     );
   }
 }
@@ -165,7 +171,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
       final parentData = child.parentData! as ForceDirectedGraphParentData;
       final childCenter = child.size.center(Offset.zero);
+
       if (parentData.node != null) {
+        // 绘制节点
         final data = parentData.node!.data;
         final node = _graph.nodes.firstWhere((element) => element.data == data);
         final moveOffset = Offset(node.position.x, -node.position.y);
@@ -174,19 +182,23 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final childOffset = moveOffset + center - offset - childCenter;
         parentData.transform = Matrix4.identity()..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
+        // 绘制边
         final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
-        context.canvas.translate(moveOffset.dx, moveOffset.dy);
-        context.canvas.rotate(edge.angle);
-        context.canvas.translate(-moveOffset.dx, -moveOffset.dy);
+        context.canvas
+          ..translate(moveOffset.dx, moveOffset.dy)
+          ..rotate(edge.angle)
+          ..translate(-moveOffset.dx, -moveOffset.dy);
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
         parentData.transform = Matrix4.identity()
           ..translate(childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
           ..rotateZ(edge.angle)
           ..translate(-childCenter.dx, -childCenter.dy);
+      } else {
+        throw Exception('Unknown child');
       }
       context.canvas.restore();
     }
@@ -199,8 +211,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
     var child = lastChild;
     while (child != null) {
       final childParentData = child.parentData! as ForceDirectedGraphParentData;
-      Matrix4 transform = Matrix4.identity();
-      transform.translate(childParentData.offset.dx, childParentData.offset.dy);
       final bool isHit = result.addWithPaintTransform(
         transform: childParentData.transform,
         position: position,
