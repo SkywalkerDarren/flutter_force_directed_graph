@@ -44,35 +44,34 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isUpdating = false;
-
-  Future updateToFinish() async {
-    if (isUpdating) {
-      return;
-    }
-    print("start graph: $_graph");
-    int stepLeft = 120 * 1000;
-    isUpdating = true;
-    while (true) {
-      if (!_graph.updateAllNodes()) {
-        print("finished graph: $_graph");
-        notifyListeners();
-        break;
-      }
-      notifyListeners();
-      print("stepLeft: $stepLeft");
-      await WidgetsBinding.instance.endOfFrame;
-      await WidgetsBinding.instance.endOfFrame;
-      stepLeft--;
-    }
-    isUpdating = false;
-  }
+  // bool isUpdating = false;
+  //
+  // Future updateToFinish() async {
+  //   if (isUpdating) {
+  //     return;
+  //   }
+  //   isUpdating = true;
+  //   while (true) {
+  //     if (!_graph.updateAllNodes()) {
+  //       notifyListeners();
+  //       break;
+  //     }
+  //     notifyListeners();
+  //     await WidgetsBinding.instance.endOfFrame;
+  //     await WidgetsBinding.instance.endOfFrame;
+  //   }
+  //   isUpdating = false;
+  // }
 
   bool update() {
-    isUpdating = true;
+    // isUpdating = true;
     final isMoving = _graph.updateAllNodes();
     notifyListeners();
-    isUpdating = false;
+    // isUpdating = false;
     return isMoving;
+  }
+
+  void needUpdate() {
+    notifyListeners();
   }
 }

@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
   int nodeCount = 0;
   Set<int> nodes = {};
-  Set<int> edges = {};
+  Set<String> edges = {};
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  controller.updateToFinish();
+                  // controller.updateToFinish();
                 },
                 child: Text('animate'),
               ),
@@ -123,11 +123,12 @@ class _MyHomePageState extends State<MyHomePage> {
               edgesBuilder: (context, a, b) {
                 return GestureDetector(
                   onTap: () {
+                    final edge = "$a <-> $b";
                     setState(() {
-                      if (edges.contains(a ^ b)) {
-                        edges.remove(a ^ b);
+                      if (edges.contains(edge)) {
+                        edges.remove(edge);
                       } else {
-                        edges.add(a ^ b);
+                        edges.add(edge);
                       }
                       print("onTap $a <-> $b");
                     });
@@ -135,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     width: 80,
                     height: 16,
-                    color: edges.contains(a ^ b) ? Colors.green : Colors.blue,
+                    color: edges.contains("$a <-> $b") ? Colors.green : Colors.blue,
                     alignment: Alignment.center,
                     child: Text('$a <-> $b'),
                   ),

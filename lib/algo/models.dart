@@ -5,7 +5,7 @@ import 'package:vector_math/vector_math.dart';
 // 最大静摩擦力
 const kMaxStaticFriction = 10.0;
 // 力缩放系数 0-1
-const kScaling = 0.1;
+const kScaling = 0.01;
 // 弹力系数 >0
 const kElasticity = 0.5;
 // 斥力系数 >0

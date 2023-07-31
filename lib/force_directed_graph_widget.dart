@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_force_directed_graph/edge_widget.dart';
 import 'package:flutter_force_directed_graph/node_widget.dart';
+import 'package:vector_math/vector_math.dart' as vector;
 
 import 'force_directed_graph_controller.dart';
 import 'algo/models.dart';
@@ -35,11 +36,10 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   void initState() {
     super.initState();
     ticker = createTicker((elapsed) {
-      final isMoving = controller.update();
+      final isMoving = controller.graph.updateAllNodes();
       if (!isMoving) {
         ticker.stop();
       }
-      print("ticker: $elapsed");
     });
     controller.addListener(_onControllerChange);
   }
@@ -51,7 +51,6 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   }
 
   void _onControllerChange() {
-    print("_onControllerChange");
     if (!ticker.isTicking) {
       ticker.start();
     }
@@ -89,7 +88,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     }
 
     return ForceDirectedGraphBody(
-      changing: () => controller.isUpdating,
+      controller: controller,
       graph: widget.controller.graph,
       nodes: nodes,
       edges: edges,
@@ -99,11 +98,11 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
 
 class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   final ForceDirectedGraph graph;
-  final bool Function() changing;
+  final ForceDirectedGraphController controller;
 
   ForceDirectedGraphBody({
     Key? key,
-    required this.changing,
+    required this.controller,
     required this.graph,
     required Iterable<NodeWidget> nodes,
     required Iterable<EdgeWidget> edges,
@@ -111,13 +110,11 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
 
   @override
   ForceDirectedGraphRenderObject createRenderObject(BuildContext context) {
-    print("createRenderObject");
-    return ForceDirectedGraphRenderObject(graph: graph, changing: changing);
+    return ForceDirectedGraphRenderObject(graph: graph, controller: controller);
   }
 
   @override
   void updateRenderObject(BuildContext context, ForceDirectedGraphRenderObject renderObject) {
-    print("updateRenderObject");
     renderObject.graph = graph;
   }
 }
@@ -126,16 +123,15 @@ class ForceDirectedGraphRenderObject extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, ForceDirectedGraphParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, ForceDirectedGraphParentData> {
-  ForceDirectedGraphRenderObject({required ForceDirectedGraph graph, required this.changing})
+  ForceDirectedGraphRenderObject({required ForceDirectedGraph graph, required this.controller})
       : _graph = graph;
 
-  final bool Function() changing;
+  final ForceDirectedGraphController controller;
 
   ForceDirectedGraph _graph;
 
   set graph(ForceDirectedGraph value) {
     _graph = value;
-    print("markNeedsPaint");
     markNeedsPaint();
   }
 
@@ -149,7 +145,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
   @override
   void performLayout() {
     size = constraints.biggest;
-    print("size: $size, constraints: $constraints");
     final children = getChildrenAsList();
     for (final child in children) {
       final parentData = child.parentData! as ForceDirectedGraphParentData;
@@ -161,9 +156,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    // print("paint");
     final center = offset + size.center(Offset.zero);
-    // print("center: $center");
     context.canvas.translate(center.dx, center.dy);
     // 获取children
     final children = getChildrenAsList();
@@ -177,18 +170,14 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final node = _graph.nodes.firstWhere((element) => element.data == data);
         final moveOffset = Offset(node.position.x, -node.position.y);
         final finalOffset = -childCenter + moveOffset;
-        // print("node: $node, parentOffset: ${parentData.offset}, moveOffset: $moveOffset, finalOffset: $finalOffset");
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
-        parentData.transform = Matrix4.identity()
-          ..translate(childOffset.dx, childOffset.dy);
-        // print("parentData.offset: ${parentData.offset}");
+        parentData.transform = Matrix4.identity()..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
-        // print("edgeCenter: $edgeCenter, edge: $edge, parentOffset: ${parentData.offset}, moveOffset: $moveOffset, finalOffset: $finalOffset");
         context.canvas.translate(moveOffset.dx, moveOffset.dy);
         context.canvas.rotate(edge.angle);
         context.canvas.translate(-moveOffset.dx, -moveOffset.dy);
@@ -198,19 +187,12 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
           ..rotateZ(edge.angle)
           ..translate(-childCenter.dx, -childCenter.dy);
-        // print("parentData.offset: ${parentData.offset}");
       }
       context.canvas.restore();
     }
-
-    // for debug
-    // context.canvas.drawCircle(Offset.zero, 3, Paint()..color = Colors.red);
-    // context.canvas.translate(-center.dx, -center.dy);
-    // for (final child in children) {
-    //   final parentData = child.parentData! as ForceDirectedGraphParentData;
-    //   context.canvas.drawCircle(parentData.offset, 3, Paint()..color = Colors.yellow);
-    // }
   }
+
+  Node? _draggingNode;
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
@@ -223,6 +205,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         transform: childParentData.transform,
         position: position,
         hitTest: (BoxHitTestResult result, Offset transformed) {
+          _draggingNode = childParentData.node;
           return child!.hitTest(result, position: transformed);
         },
       );
@@ -232,6 +215,46 @@ class ForceDirectedGraphRenderObject extends RenderBox
       child = childParentData.previousSibling;
     }
     return false;
+  }
+
+  @override
+  bool hitTestSelf(Offset position) => true;
+
+  vector.Vector2? _downPosition;
+
+  @override
+  void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
+    if (event is PointerDownEvent) {
+      if (_draggingNode != null) {
+        _downPosition = _draggingNode!.position;
+      }
+      // ignore
+    } else if (event is PointerMoveEvent) {
+      if (_draggingNode != null) {
+        // 移动节点
+        _downPosition = _downPosition! + vector.Vector2(event.delta.dx, -event.delta.dy);
+        _draggingNode!.position = _downPosition!;
+        markNeedsPaint();
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          controller.needUpdate();
+        });
+      } else {
+        // 移动画布
+        for (final node in _graph.nodes) {
+          node.position += vector.Vector2(event.delta.dx, -event.delta.dy);
+        }
+        markNeedsPaint();
+      }
+    } else if (event is PointerUpEvent) {
+      if (_draggingNode != null) {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          controller.needUpdate();
+        });
+      }
+      _downPosition = null;
+      _draggingNode = null;
+    }
+    return super.handleEvent(event, entry);
   }
 }
 
