@@ -1,39 +1,69 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+```markdown
+# Flutter Force Directed Graph
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Flutter Force Directed Graph is a Flutter package that helps you create a force directed graph visualization in your Flutter applications.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Create a force directed graph with customizable nodes and edges.
+- Add, remove or update nodes and edges dynamically.
+- Use the provided `ForceDirectedGraphWidget` for easy integration into your app.
+- Built-in gesture detection for nodes and edges.
+- Comes with a `ForceDirectedGraphController` for easy management of the graph’s state.
 
-## Getting started
+## Getting Started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Installation
+
+Add the following in your `pubspec.yaml` file under `dependencies`:
+
+```yaml
+dependencies:
+  flutter_force_directed_graph: <latest_version>
+```
+
+Then install it by running `flutter pub get` in your terminal.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Here’s a basic example on how to use the `ForceDirectedGraphWidget` and `ForceDirectedGraphController`.
 
 ```dart
-const like = 'sample';
+import 'package:flutter_force_directed_graph/force_directed_graph_controller.dart';
+import 'package:flutter_force_directed_graph/force_directed_graph_widget.dart';
+
+ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
+
+final fdgWidget = ForceDirectedGraphWidget(
+  controller: controller,
+  nodesBuilder: (context, data) {
+    return Container(
+      width: 24,
+      height: 24,
+      alignment: Alignment.center,
+      color: Colors.red,
+      child: Text('$data'),
+    );
+  },
+  edgesBuilder: (context, a, b) {
+    return Container(
+      width: 80,
+      height: 16,
+      color: Colors.blue,
+      alignment: Alignment.center,
+      child: Text('$a <-> $b'),
+    );
+  },
+);
 ```
 
-## Additional information
+For a more detailed example, please view the [example directory](https://github.com/SkywalkerDarren/flutter_force_directed_graph/tree/master/example) in this repository.
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+## Additional Information
+
+We welcome contributions! If you find a bug or want a feature that isn't yet implemented, feel free to open an issue. If you want to contribute code, feel free to open a PR.
+
+If you have any questions or need further guidance, please open an issue and we'll be glad to help out.
+```
+
+Please replace `url-to-demo.gif` with the actual URL of your demo GIF and `your-github-username` with your actual GitHub username.
