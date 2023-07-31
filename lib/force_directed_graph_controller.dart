@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 class ForceDirectedGraphController<T> extends ChangeNotifier {
   final ForceDirectedGraph<T> _graph;
+
   ForceDirectedGraph<T> get graph => _graph;
 
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph}) : _graph = graph ?? ForceDirectedGraph();
@@ -44,31 +45,15 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // bool isUpdating = false;
-  //
-  // Future updateToFinish() async {
-  //   if (isUpdating) {
-  //     return;
-  //   }
-  //   isUpdating = true;
-  //   while (true) {
-  //     if (!_graph.updateAllNodes()) {
-  //       notifyListeners();
-  //       break;
-  //     }
-  //     notifyListeners();
-  //     await WidgetsBinding.instance.endOfFrame;
-  //     await WidgetsBinding.instance.endOfFrame;
-  //   }
-  //   isUpdating = false;
-  // }
-
-  bool update() {
-    // isUpdating = true;
-    final isMoving = _graph.updateAllNodes();
-    notifyListeners();
-    // isUpdating = false;
-    return isMoving;
+  void deleteEdgeByData(T a, T b) {
+    final nodeA = _graph.nodes.firstWhereOrNull((element) => element.data == a);
+    final nodeB = _graph.nodes.firstWhereOrNull((element) => element.data == b);
+    if (nodeA != null && nodeB != null) {
+      final edge = _graph.edges.firstWhereOrNull((element) => element.a == nodeA && element.b == nodeB);
+      if (edge != null) {
+        deleteEdge(edge);
+      }
+    }
   }
 
   void needUpdate() {

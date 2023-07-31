@@ -54,26 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Row(
+          Wrap(
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  // controller.updateToFinish();
-                },
-                child: Text('animate'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (nodes.length == 2) {
-                    final a = nodes.first;
-                    final b = nodes.last;
-                    controller.addEdgeByData(a, b);
-                  }
-                  nodes.clear();
-                  edges.clear();
-                },
-                child: Text('add edge'),
-              ),
               ElevatedButton(
                 onPressed: () {
                   final a = nodeCount;
@@ -92,7 +74,35 @@ class _MyHomePageState extends State<MyHomePage> {
                   nodes.clear();
                   edges.clear();
                 },
-                child: Text('delete node'),
+                child: Text('del node'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (nodes.length == 2) {
+                    final a = nodes.first;
+                    final b = nodes.last;
+                    controller.addEdgeByData(a, b);
+                  }
+                  nodes.clear();
+                  edges.clear();
+                },
+                child: Text('add edge'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  for (final edge in edges) {
+                    final a = int.parse(edge.split(' <-> ').first);
+                    final b = int.parse(edge.split(' <-> ').last);
+                    controller.deleteEdgeByData(a, b);
+                  }
+                },
+                child: Text('del edge'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  controller.needUpdate();
+                },
+                child: Text('update'),
               ),
             ],
           ),
