@@ -26,7 +26,8 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
   State<ForceDirectedGraphWidget<T>> createState() => _ForceDirectedGraphState<T>();
 }
 
-class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>> with SingleTickerProviderStateMixin {
+class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
+    with SingleTickerProviderStateMixin {
   ForceDirectedGraphController<T> get controller => widget.controller;
   late Ticker ticker;
 
@@ -162,7 +163,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   void paint(PaintingContext context, Offset offset) {
     // print("paint");
     final center = offset + size.center(Offset.zero);
-    print("center: $center");
+    // print("center: $center");
     context.canvas.translate(center.dx, center.dy);
     // 获取children
     final children = getChildrenAsList();
@@ -178,7 +179,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final finalOffset = -childCenter + moveOffset;
         // print("node: $node, parentOffset: ${parentData.offset}, moveOffset: $moveOffset, finalOffset: $finalOffset");
         context.paintChild(child, finalOffset);
-        parentData.offset = moveOffset + center - offset - childCenter;
+        final childOffset = moveOffset + center - offset - childCenter;
+        parentData.transform = Matrix4.identity()
+          ..translate(childOffset.dx, childOffset.dy);
         // print("parentData.offset: ${parentData.offset}");
       } else if (parentData.edge != null) {
         final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
@@ -190,7 +193,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
         context.canvas.rotate(edge.angle);
         context.canvas.translate(-moveOffset.dx, -moveOffset.dy);
         context.paintChild(child, finalOffset);
-        parentData.offset = moveOffset + center - offset - childCenter;
+        final childOffset = moveOffset + center - offset - childCenter;
+        parentData.transform = Matrix4.identity()
+          ..translate(childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
+          ..rotateZ(edge.angle)
+          ..translate(-childCenter.dx, -childCenter.dy);
         // print("parentData.offset: ${parentData.offset}");
       }
       context.canvas.restore();
@@ -210,11 +217,12 @@ class ForceDirectedGraphRenderObject extends RenderBox
     var child = lastChild;
     while (child != null) {
       final childParentData = child.parentData! as ForceDirectedGraphParentData;
-      final bool isHit = result.addWithPaintOffset(
-        offset: childParentData.offset,
+      Matrix4 transform = Matrix4.identity();
+      transform.translate(childParentData.offset.dx, childParentData.offset.dy);
+      final bool isHit = result.addWithPaintTransform(
+        transform: childParentData.transform,
         position: position,
         hitTest: (BoxHitTestResult result, Offset transformed) {
-          assert(transformed == position - childParentData.offset);
           return child!.hitTest(result, position: transformed);
         },
       );
@@ -230,6 +238,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
 class ForceDirectedGraphParentData extends ContainerBoxParentData<RenderBox> {
   Node? node;
   Edge? edge;
+  Matrix4? transform;
 
   ForceDirectedGraphParentData();
 }

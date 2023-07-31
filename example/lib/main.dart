@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
   int nodeCount = 0;
   Set<int> nodes = {};
+  Set<int> edges = {};
 
   @override
   void initState() {
@@ -69,6 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller.addEdgeByData(a, b);
                   }
                   nodes.clear();
+                  edges.clear();
                 },
                 child: Text('add edge'),
               ),
@@ -78,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   nodeCount++;
                   controller.addNode(a);
                   nodes.clear();
+                  edges.clear();
                 },
                 child: Text('add node'),
               ),
@@ -87,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller.deleteNodeByData(node);
                   }
                   nodes.clear();
+                  edges.clear();
                 },
                 child: Text('delete node'),
               ),
@@ -119,12 +123,19 @@ class _MyHomePageState extends State<MyHomePage> {
               edgesBuilder: (context, a, b) {
                 return GestureDetector(
                   onTap: () {
-                    print("onTap $a <-> $b");
+                    setState(() {
+                      if (edges.contains(a ^ b)) {
+                        edges.remove(a ^ b);
+                      } else {
+                        edges.add(a ^ b);
+                      }
+                      print("onTap $a <-> $b");
+                    });
                   },
                   child: Container(
                     width: 80,
                     height: 16,
-                    color: Colors.blue,
+                    color: edges.contains(a ^ b) ? Colors.green : Colors.blue,
                     alignment: Alignment.center,
                     child: Text('$a <-> $b'),
                   ),
