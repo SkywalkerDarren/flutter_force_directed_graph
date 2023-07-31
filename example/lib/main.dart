@@ -12,11 +12,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Force Directed Graph Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Force Directed Graph Demo'),
     );
   }
 }
@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   nodes.clear();
                   edges.clear();
                 },
-                child: Text('add node'),
+                child: const Text('add node'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -74,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   nodes.clear();
                   edges.clear();
                 },
-                child: Text('del node'),
+                child: const Text('del node'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   nodes.clear();
                   edges.clear();
                 },
-                child: Text('add edge'),
+                child: const Text('add edge'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -96,13 +96,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller.deleteEdgeByData(a, b);
                   }
                 },
-                child: Text('del edge'),
+                child: const Text('del edge'),
               ),
               ElevatedButton(
                 onPressed: () {
                   controller.needUpdate();
                 },
-                child: Text('update'),
+                child: const Text('update'),
               ),
             ],
           ),
