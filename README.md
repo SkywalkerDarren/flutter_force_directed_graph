@@ -1,4 +1,3 @@
-```markdown
 # Flutter Force Directed Graph
 
 Flutter Force Directed Graph is a Flutter package that helps you create a force directed graph visualization in your Flutter applications.
@@ -64,6 +63,3 @@ For a more detailed example, please view the [example directory](https://github.
 We welcome contributions! If you find a bug or want a feature that isn't yet implemented, feel free to open an issue. If you want to contribute code, feel free to open a PR.
 
 If you have any questions or need further guidance, please open an issue and we'll be glad to help out.
-```
-
-Please replace `url-to-demo.gif` with the actual URL of your demo GIF and `your-github-username` with your actual GitHub username.
