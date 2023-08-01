@@ -176,7 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 );
               },
-              edgesBuilder: (context, a, b) {
+              edgesBuilder: (context, a, b, distance) {
                 return GestureDetector(
                   onTap: () {
                     final edge = "$a <-> $b";
@@ -186,11 +186,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       } else {
                         edges.add(edge);
                       }
-                      print("onTap $a <-> $b");
+                      print("onTap $a <-$distance-> $b");
                     });
                   },
                   child: Container(
-                    width: 80,
+                    width: distance,
                     height: 16,
                     color: edges.contains("$a <-> $b")
                         ? Colors.green

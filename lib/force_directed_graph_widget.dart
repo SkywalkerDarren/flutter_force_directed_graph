@@ -10,7 +10,7 @@ import 'force_directed_graph_controller.dart';
 import 'algo/models.dart';
 
 typedef NodeBuilder<T> = Widget Function(BuildContext context, T data);
-typedef EdgeBuilder<T> = Widget Function(BuildContext context, T a, T b);
+typedef EdgeBuilder<T> = Widget Function(BuildContext context, T a, T b, double distance);
 
 class ForceDirectedGraphWidget<T> extends StatefulWidget {
   const ForceDirectedGraphWidget({
@@ -75,7 +75,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     });
 
     final edges = _controller.graph.edges.map((e) {
-      final child = widget.edgesBuilder(context, e.a.data, e.b.data);
+      final child = widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
       if (child is EdgeWidget) {
         assert(child.edge == e);
         return child;
