@@ -1,7 +1,7 @@
 name: flutter_force_directed_graph
 description: Force directed graph
 version: 0.0.1
-homepage:
+homepage: https://github.com/SkywalkerDarren/flutter_force_directed_graph
 
 environment:
   sdk: '>=2.18.6 <3.0.0'

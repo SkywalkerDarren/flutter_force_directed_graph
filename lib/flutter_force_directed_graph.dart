@@ -1,7 +1,4 @@
 library flutter_force_directed_graph;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'force_directed_graph_controller.dart';
+export 'force_directed_graph_widget.dart';
