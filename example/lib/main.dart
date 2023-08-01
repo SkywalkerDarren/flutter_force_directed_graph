@@ -47,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int nodeCount = 0;
   Set<int> nodes = {};
   Set<String> edges = {};
+  int locatedTo = 0;
 
   @override
   void initState() {
@@ -131,6 +132,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('random'),
               ),
+              ElevatedButton(
+                onPressed: () {
+                  controller.center();
+                },
+                child: const Text('center'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    locatedTo++;
+                    locatedTo = locatedTo % controller.graph.nodes.length;
+                    final data = controller.graph.nodes[locatedTo].data;
+                    controller.locateTo(data);
+                  });
+                },
+                child:
+                    Text('locateTo ${controller.graph.nodes[locatedTo].data}'),
+              ),
             ],
           ),
           Expanded(
@@ -173,7 +192,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     width: 80,
                     height: 16,
-                    color: edges.contains("$a <-> $b") ? Colors.green : Colors.blue,
+                    color: edges.contains("$a <-> $b")
+                        ? Colors.green
+                        : Colors.blue,
                     alignment: Alignment.center,
                     child: Text('$a <-> $b'),
                   ),

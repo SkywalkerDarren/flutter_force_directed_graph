@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:collection/collection.dart';
+import 'package:vector_math/vector_math.dart';
 
 class ForceDirectedGraphController<T> extends ChangeNotifier {
   ForceDirectedGraph<T> _graph;
@@ -13,6 +14,28 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   ForceDirectedGraph<T> get graph => _graph;
 
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph}) : _graph = graph ?? ForceDirectedGraph();
+
+  void center() {
+    Vector2 sum = Vector2.zero();
+    for (final node in _graph.nodes) {
+      sum.add(node.position);
+    }
+    sum.scale(1.0 / _graph.nodes.length);
+    for (final node in _graph.nodes) {
+      node.position -= sum;
+    }
+    notifyListeners();
+  }
+
+  void locateTo(T data) {
+    final located = _graph.nodes.firstWhereOrNull((element) => element.data == data)?.position;
+    if (located != null) {
+      for (final node in _graph.nodes) {
+        node.position -= located;
+      }
+      notifyListeners();
+    }
+  }
 
   Node<T> addNode(T data) {
     final node = Node(data);
