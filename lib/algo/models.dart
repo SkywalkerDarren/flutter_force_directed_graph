@@ -19,6 +19,7 @@ class Node<T> {
   Vector2 position = (Vector2.random() - Vector2(0.5, 0.5)) * 200;
   Vector2 force = Vector2.zero();
   Vector2 velocity = Vector2.zero();
+  bool isFixed = false;
 
   Node(this.data);
 
@@ -39,6 +40,11 @@ class Node<T> {
   /// 还需要考虑当前节点是否静止，然后考虑静摩擦力，考虑动摩擦力
   /// 静止状态下和运动状态下的计算方式应该不同
   bool updatePosition({double scaling = kScaling}) {
+    if (isFixed) {
+      force = Vector2.zero();
+      velocity = Vector2.zero();
+      return false;
+    }
     if (velocity.length < kMinVelocity) {
       // 静止状态
       if (force.length < kMaxStaticFriction) {
@@ -186,6 +192,11 @@ class ForceDirectedGraph<T> {
     bool positionUpdated = false;
     for (final node in nodes) {
       positionUpdated |= node.updatePosition();
+    }
+    if (!positionUpdated) {
+        for (final node in nodes) {
+          node.isFixed = false;
+        }
     }
     return positionUpdated;
   }

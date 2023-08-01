@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -215,11 +216,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
         transform: childParentData.transform,
         position: position,
         hitTest: (BoxHitTestResult result, Offset transformed) {
-          _draggingNode = childParentData.node;
           return child!.hitTest(result, position: transformed);
         },
       );
       if (isHit) {
+        _draggingNode = childParentData.node;
         return true;
       }
       child = childParentData.previousSibling;
@@ -237,11 +238,13 @@ class ForceDirectedGraphRenderObject extends RenderBox
     if (event is PointerDownEvent) {
       if (_draggingNode != null) {
         _downPosition = _draggingNode!.position;
+        _draggingNode!.isFixed = true;
       }
       // ignore
     } else if (event is PointerMoveEvent) {
       if (_draggingNode != null) {
         // 移动节点
+        _draggingNode!.isFixed = true;
         _downPosition = _downPosition! + vector.Vector2(event.delta.dx, -event.delta.dy);
         _draggingNode!.position = _downPosition!;
         markNeedsPaint();
@@ -255,7 +258,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         }
         markNeedsPaint();
       }
-    } else if (event is PointerUpEvent) {
+    } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       if (_draggingNode != null) {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           controller.needUpdate();
@@ -264,7 +267,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
       _downPosition = null;
       _draggingNode = null;
     }
-    return super.handleEvent(event, entry);
   }
 }
 
