@@ -87,6 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('del node'),
               ),
+              const SizedBox(width: 4),
               ElevatedButton(
                 onPressed: () {
                   if (nodes.length == 2) {
