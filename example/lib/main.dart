@@ -106,6 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     final b = int.parse(edge.split(' <-> ').last);
                     controller.deleteEdgeByData(a, b);
                   }
+                  nodes.clear();
+                  edges.clear();
                 },
                 child: const Text('del edge'),
               ),
@@ -118,13 +120,16 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
+                    nodes.clear();
+                    edges.clear();
+                    nodeCount = 0;
+                    locatedTo = 0;
                     controller.graph = ForceDirectedGraph.generateNTree(
                       nodeCount: 50,
                       maxDepth: 3,
                       n: 4,
                       generator: () {
                         nodeCount++;
-                        print(nodeCount);
                         return nodeCount;
                       },
                     );
@@ -170,8 +175,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     width: 24,
                     height: 24,
+                    decoration: BoxDecoration(
+                      color: nodes.contains(data) ? Colors.green : Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     alignment: Alignment.center,
-                    color: nodes.contains(data) ? Colors.green : Colors.red,
                     child: Text('$data'),
                   ),
                 );
