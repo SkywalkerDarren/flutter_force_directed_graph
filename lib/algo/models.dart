@@ -3,13 +3,15 @@ import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
 // 最大静摩擦力
-const kMaxStaticFriction = 10.0;
+const kMaxStaticFriction = 20.0;
 // 力缩放系数 0-1
 const kScaling = 0.01;
 // 弹力系数 >0
-const kElasticity = 0.5;
+const kElasticity = 1.0;
 // 斥力系数 >0
-const kRepulsion = 15.0;
+const kRepulsion = 30.0;
+// 斥力最大范围 >0
+const kRepulsionRange = 150.0;
 // 最低速度 >0
 const kMinVelocity = 5;
 
@@ -143,6 +145,57 @@ class ForceDirectedGraph<T> {
 
   ForceDirectedGraph();
 
+  ForceDirectedGraph.generateNTree({
+    required int nodeCount,
+    required int maxDepth,
+    required int n,
+    required T Function() generator,
+  }) {
+    Random random = Random();
+    final root = Node(generator());
+    nodes.add(root);
+    _createNTree(root, nodeCount - 1, maxDepth - 1, n, random, generator);
+  }
+
+  void _createNTree(
+    Node<T> node,
+    int remainingNodes,
+    int remainingDepth,
+    int n,
+    Random random,
+    T Function() generator,
+  ) {
+    if (remainingNodes <= 0 || remainingDepth == 0) {
+      return;
+    }
+
+    int nodesAtThisLevel = min(n, remainingNodes);
+    final children = [];
+    for (int i = 0; i < nodesAtThisLevel; i++) {
+      final newNode = Node(generator());
+      children.add(newNode);
+      addNode(newNode);
+      addEdge(Edge(node, newNode));
+      remainingNodes--;
+    }
+
+    for (final childNode in children) {
+      if (remainingNodes <= 0) {
+        break;
+      }
+      int childNodeCount = random.nextInt(remainingNodes + 1);
+      _createNTree(
+        childNode,
+        childNodeCount,
+        remainingDepth - 1,
+        n,
+        random,
+        generator,
+      );
+      remainingNodes -= childNodeCount;
+    }
+  }
+
   void addNode(Node<T> node) {
     if (nodes.contains(node)) {
       throw Exception('Node already exists');
@@ -178,6 +231,7 @@ class ForceDirectedGraph<T> {
     for (final node in nodes) {
       for (final other in nodes) {
         if (node == other) continue;
+        if (node.position.distanceTo(other.position) > kRepulsionRange) continue;
         final repulsionForce = node.calculateRepulsionForce(other);
         node.applyForce(repulsionForce);
       }

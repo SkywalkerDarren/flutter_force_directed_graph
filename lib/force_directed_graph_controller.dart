@@ -3,7 +3,12 @@ import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:collection/collection.dart';
 
 class ForceDirectedGraphController<T> extends ChangeNotifier {
-  final ForceDirectedGraph<T> _graph;
+  ForceDirectedGraph<T> _graph;
+
+  set graph(ForceDirectedGraph<T> value) {
+    _graph = value;
+    notifyListeners();
+  }
 
   ForceDirectedGraph<T> get graph => _graph;
 

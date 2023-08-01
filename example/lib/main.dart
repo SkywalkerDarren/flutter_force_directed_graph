@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:flutter_force_directed_graph/force_directed_graph_controller.dart';
 import 'package:flutter_force_directed_graph/force_directed_graph_widget.dart';
 
@@ -31,7 +32,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
+  late ForceDirectedGraphController<int> controller =
+      ForceDirectedGraphController(
+    graph: ForceDirectedGraph.generateNTree(
+      nodeCount: 50,
+      maxDepth: 3,
+      n: 4,
+      generator: () {
+        nodeCount++;
+        return nodeCount;
+      },
+    ),
+  );
   int nodeCount = 0;
   Set<int> nodes = {};
   Set<String> edges = {};
@@ -39,11 +51,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    final a = nodeCount;
-    nodeCount++;
-    final b = nodeCount;
-    nodeCount++;
-    controller.addEdgeByData(a, b);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.needUpdate();
+    });
   }
 
   @override
@@ -103,6 +113,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   controller.needUpdate();
                 },
                 child: const Text('update'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    controller.graph = ForceDirectedGraph.generateNTree(
+                      nodeCount: 50,
+                      maxDepth: 3,
+                      n: 4,
+                      generator: () {
+                        nodeCount++;
+                        print(nodeCount);
+                        return nodeCount;
+                      },
+                    );
+                  });
+                },
+                child: const Text('random'),
               ),
             ],
           ),
