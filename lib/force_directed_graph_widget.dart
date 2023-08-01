@@ -32,6 +32,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     with SingleTickerProviderStateMixin {
   ForceDirectedGraphController<T> get _controller => widget.controller;
   late Ticker _ticker;
+  double _scale = 1.0;
 
   @override
   void initState() {
@@ -90,14 +91,25 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       return Container();
     }
 
-    return RepaintBoundary(
-      child: ClipRect(
-        child: ForceDirectedGraphBody(
-          controller: _controller,
-          graph: _controller.graph,
-          scale: _controller.scale,
-          nodes: nodes,
-          edges: edges,
+
+
+    return GestureDetector(
+      onScaleStart: (details) {
+        _scale = _controller.scale;
+      },
+      onScaleUpdate: (details) {
+        final scale = (_scale * details.scale).clamp(_controller.minScale, _controller.maxScale);
+        _controller.scale = scale;
+      },
+      child: RepaintBoundary(
+        child: ClipRect(
+          child: ForceDirectedGraphBody(
+            controller: _controller,
+            graph: _controller.graph,
+            scale: _controller.scale,
+            nodes: nodes,
+            edges: edges,
+          ),
         ),
       ),
     );

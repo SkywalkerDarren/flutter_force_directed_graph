@@ -9,10 +9,14 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
 
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph}) : _graph = graph ?? ForceDirectedGraph();
 
+
+  final double minScale = 0.5;
+  final double maxScale = 2.0;
+
   double _scale = 1.0;
 
   set scale(double scale) {
-    _scale = scale;
+    _scale = scale.clamp(minScale, maxScale);
     notifyListeners();
   }
 
