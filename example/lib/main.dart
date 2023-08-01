@@ -35,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int nodeCount = 0;
   Set<int> nodes = {};
   Set<String> edges = {};
+  double _scale = 1.0;
 
   @override
   void initState() {
@@ -104,6 +105,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('update'),
               ),
+              Slider(
+                value: _scale,
+                min: 0.1,
+                max: 2.0,
+                onChanged: (value) {
+                  setState(() {
+                    _scale = value;
+                    controller.scale = value;
+                  });
+                },
+              )
             ],
           ),
           Expanded(

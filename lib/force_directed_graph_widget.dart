@@ -94,7 +94,8 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       child: ClipRect(
         child: ForceDirectedGraphBody(
           controller: _controller,
-          graph: widget.controller.graph,
+          graph: _controller.graph,
+          scale: _controller.scale,
           nodes: nodes,
           edges: edges,
         ),
@@ -106,11 +107,13 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
 class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   final ForceDirectedGraph graph;
   final ForceDirectedGraphController controller;
+  final double scale;
 
   ForceDirectedGraphBody({
     Key? key,
     required this.controller,
     required this.graph,
+    required this.scale,
     required Iterable<NodeWidget> nodes,
     required Iterable<EdgeWidget> edges,
   }) : super(key: key, children: [...edges, ...nodes]);
@@ -122,7 +125,9 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, ForceDirectedGraphRenderObject renderObject) {
-    renderObject.graph = graph;
+    renderObject
+      ..graph = graph
+      .._scale = scale;
   }
 }
 
@@ -139,6 +144,13 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   set graph(ForceDirectedGraph value) {
     _graph = value;
+    markNeedsPaint();
+  }
+
+  double _scale = 1;
+
+  set scale(double value) {
+    _scale = value;
     markNeedsPaint();
   }
 
@@ -165,6 +177,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   void paint(PaintingContext context, Offset offset) {
     final center = offset + size.center(Offset.zero);
     context.canvas.translate(center.dx, center.dy);
+    context.canvas.scale(_scale, _scale);
     // 获取children
     final children = getChildrenAsList();
     for (final child in children) {
@@ -181,7 +194,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final finalOffset = -childCenter + moveOffset;
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
-        parentData.transform = Matrix4.identity()..translate(childOffset.dx, childOffset.dy);
+        parentData.transform = Matrix4.identity()
+          ..translate(center.dx, center.dy)
+          ..scale(_scale, _scale)
+          ..translate(-center.dx, -center.dy)
+          ..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         // 绘制边
         final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
@@ -195,6 +212,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
         parentData.transform = Matrix4.identity()
+          ..translate(center.dx, center.dy)
+          ..scale(_scale, _scale)
+          ..translate(-center.dx, -center.dy)
           ..translate(childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
           ..rotateZ(edge.angle)
           ..translate(-childCenter.dx, -childCenter.dy);
@@ -245,7 +265,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       if (_draggingNode != null) {
         // 移动节点
         _draggingNode!.isFixed = true;
-        _downPosition = _downPosition! + vector.Vector2(event.delta.dx, -event.delta.dy);
+        _downPosition = _downPosition! + vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         _draggingNode!.position = _downPosition!;
         markNeedsPaint();
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -254,7 +274,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       } else {
         // 移动画布
         for (final node in _graph.nodes) {
-          node.position += vector.Vector2(event.delta.dx, -event.delta.dy);
+          node.position += vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         }
         markNeedsPaint();
       }
