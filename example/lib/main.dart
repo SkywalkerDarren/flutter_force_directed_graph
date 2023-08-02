@@ -77,9 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  final a = _nodeCount;
                   _nodeCount++;
-                  _controller.addNode(a);
+                  _controller.addNode(_nodeCount);
                   _nodes.clear();
                   _edges.clear();
                 },
