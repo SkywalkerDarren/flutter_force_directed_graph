@@ -13,7 +13,7 @@ visualization in your Flutter applications.
 
 ## Demo
 
-![example.gif](doc/example.gif)
+![example.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/example.gif)
 
 ## Getting Started
 
