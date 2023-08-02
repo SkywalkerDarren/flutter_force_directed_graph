@@ -12,7 +12,7 @@ class Node<T> {
 
   Node(this.data);
 
-  // 库仑定律计算排斥力
+  /// Coulomb's law calculates the repulsive force
   Vector2 calculateRepulsionForce(Node other, {required double k}) {
     final distance = position.distanceTo(other.position);
     final direction = (position - other.position).normalized();
@@ -23,11 +23,11 @@ class Node<T> {
     this.force += force;
   }
 
-  /// scaling: 位移缩放系数 0-1
-  /// return: 是否处于运动状态
-  /// 在一个时间步长内，根据力学计算节点的位移，
-  /// 还需要考虑当前节点是否静止，然后考虑静摩擦力，考虑动摩擦力
-  /// 静止状态下和运动状态下的计算方式应该不同
+  /// scaling: displacement scaling factor 0-1
+  /// return: whether it is in motion
+  /// Within a time step, calculate the displacement of the node based on mechanics,
+  /// also need to consider whether the current node is stationary,
+  /// then consider the static friction, consider the dynamic friction
   bool updatePosition({
     required double scaling,
     required double minVelocity,
@@ -39,9 +39,9 @@ class Node<T> {
       return false;
     }
     if (velocity.length < minVelocity) {
-      // 静止状态
+      // static state
       if (force.length < maxStaticFriction) {
-        // 静止状态下力度太小，不需要计算
+        // If the force is too small in the static state, no calculation is required
         velocity = Vector2.zero();
         force = Vector2.zero();
         return false;
@@ -95,19 +95,19 @@ class Edge {
     }
   }
 
-  // 胡克定律计算引力
+  /// Hooke's law calculates the elastic force
   double calculateAttractionForce({required double k, required double length}) {
     final distance = this.distance;
     final deformation = distance - length;
     return k * deformation;
   }
 
-  // 计算节点A受到的引力方向
+  /// Calculate the elastic force direction of node A
   Vector2 calculateAttractionForceDirectionA() {
     return (b.position - a.position).normalized();
   }
 
-  // 计算节点B受到的引力方向
+  /// Calculate the elastic force direction of node B
   Vector2 calculateAttractionForceDirectionB() {
     return (a.position - b.position).normalized();
   }
@@ -130,24 +130,25 @@ class Edge {
 }
 
 class GraphConfig {
-  /// 最大静摩擦力 >0
+  /// Max static friction >0
   final double maxStaticFriction;
 
-  /// 力缩放系数 0-1
+  /// Force scaling >0
   final double scaling;
 
-  /// 弹力系数 >0
+  /// Elasticity >0
   final double elasticity;
 
-  /// 斥力系数 >0
+  /// Repulsion >0
   final double repulsion;
 
-  /// 斥力最大范围 >0
+  /// Repulsion range >0
   final double repulsionRange;
 
-  /// 最低速度 >0
+  /// Min velocity >0
   final double minVelocity;
 
+  /// Spring length >0
   final double length = 50.0;
 
   const GraphConfig({
@@ -165,8 +166,14 @@ class ForceDirectedGraph<T> {
   final List<Edge> edges = [];
   final GraphConfig config;
 
+  /// Create an empty graph.
   ForceDirectedGraph({this.config = const GraphConfig()});
 
+  /// Generate a random tree graph.
+  /// [nodeCount] is the max node count.
+  /// [maxDepth] is the max depth of the tree.
+  /// [n] is the max children count of a node.
+  /// [generator] is the generator of the node data. Make sure the data is unique.
   ForceDirectedGraph.generateNTree({
     required int nodeCount,
     required int maxDepth,
@@ -257,16 +264,13 @@ class ForceDirectedGraph<T> {
         if (node.position.distanceTo(other.position) > config.repulsionRange) {
           continue;
         }
-        final repulsionForce =
-            node.calculateRepulsionForce(other, k: config.repulsion);
+        final repulsionForce = node.calculateRepulsionForce(other, k: config.repulsion);
         node.applyForce(repulsionForce);
       }
     }
     for (final edge in edges) {
-      final attractionForce = edge.calculateAttractionForce(
-          k: config.elasticity, length: config.length);
-      final attractionForceDirectionA =
-          edge.calculateAttractionForceDirectionA();
+      final attractionForce = edge.calculateAttractionForce(k: config.elasticity, length: config.length);
+      final attractionForceDirectionA = edge.calculateAttractionForceDirectionA();
       final fa = attractionForceDirectionA * attractionForce;
       edge.a.applyForce(fa);
       edge.b.applyForce(-fa);

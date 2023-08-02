@@ -6,6 +6,7 @@ import 'package:vector_math/vector_math.dart';
 class ForceDirectedGraphController<T> extends ChangeNotifier {
   final ForceDirectedGraph<T> _graph;
 
+  /// Set graph.
   set graph(ForceDirectedGraph<T> graph) {
     _graph.nodes.clear();
     _graph.edges.clear();
@@ -14,6 +15,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Get graph.
   ForceDirectedGraph<T> get graph => _graph;
 
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph})
@@ -24,13 +26,16 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
 
   double _scale = 1.0;
 
+  /// Scale of the graph. Clamped between [minScale] and [maxScale].
   set scale(double scale) {
     _scale = scale.clamp(minScale, maxScale);
     notifyListeners();
   }
 
+  /// Scale of the graph. Clamped between [minScale] and [maxScale].
   double get scale => _scale;
 
+  /// Center the graph.
   void center() {
     Vector2 sum = Vector2.zero();
     for (final node in _graph.nodes) {
@@ -43,6 +48,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Locate to the node with the given data.
   void locateTo(T data) {
     final located = _graph.nodes
         .firstWhereOrNull((element) => element.data == data)
@@ -55,6 +61,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     }
   }
 
+  /// Add node. Returns the added node.
   Node<T> addNode(T data) {
     final node = Node(data);
     _graph.addNode(node);
@@ -62,11 +69,13 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     return node;
   }
 
+  /// Add edge by node.
   void addEdgeByNode(Node<T> a, Node<T> b) {
     _graph.addEdge(a.connect(b));
     notifyListeners();
   }
 
+  /// Add edge by data. If the node is not found, add it.
   void addEdgeByData(T a, T b) {
     final nodeA = _graph.nodes
         .firstWhere((element) => element.data == a, orElse: () => addNode(a));
@@ -75,6 +84,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     addEdgeByNode(nodeA, nodeB);
   }
 
+  /// Delete node. If the node is not found, do nothing.
   void deleteNode(Node<T> node) {
     _graph.nodes.remove(node);
     _graph.edges
@@ -82,6 +92,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Delete node by data. If the node is not found, do nothing.
   void deleteNodeByData(T data) {
     final node =
         _graph.nodes.firstWhereOrNull((element) => element.data == data);
@@ -90,11 +101,13 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     }
   }
 
+  /// Delete edge. If the edge is not found, do nothing.
   void deleteEdge(Edge edge) {
     _graph.edges.remove(edge);
     notifyListeners();
   }
 
+  /// Delete edge by data. If the edge is not found, do nothing.
   void deleteEdgeByData(T a, T b) {
     final nodeA = _graph.nodes.firstWhereOrNull((element) => element.data == a);
     final nodeB = _graph.nodes.firstWhereOrNull((element) => element.data == b);
@@ -107,6 +120,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     }
   }
 
+  /// Notifies listeners that they should update.
   void needUpdate() {
     notifyListeners();
   }

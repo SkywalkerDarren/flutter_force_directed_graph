@@ -8,10 +8,19 @@ import 'package:vector_math/vector_math.dart' as vector;
 import 'force_directed_graph_controller.dart';
 import 'algo/models.dart';
 
+/// A builder that builds a node.
+/// [context] is the build context.
+/// [data] is the data of the node.
 typedef NodeBuilder<T> = Widget Function(BuildContext context, T data);
-typedef EdgeBuilder<T> = Widget Function(
-    BuildContext context, T a, T b, double distance);
 
+/// A builder that builds an edge.
+/// [context] is the build context.
+/// [a] is the data of the node at the start of the edge.
+/// [b] is the data of the node at the end of the edge.
+/// [distance] is the distance between the two nodes.
+typedef EdgeBuilder<T> = Widget Function(BuildContext context, T a, T b, double distance);
+
+/// A widget that displays a force-directed graph.
 class ForceDirectedGraphWidget<T> extends StatefulWidget {
   const ForceDirectedGraphWidget({
     super.key,
@@ -23,16 +32,26 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
     this.onDraggingEnd,
   });
 
+  /// The controller of the graph.
   final ForceDirectedGraphController<T> controller;
+
+  /// The builder of the nodes.
   final NodeBuilder<T> nodesBuilder;
+
+  /// The builder of the edges.
   final EdgeBuilder<T> edgesBuilder;
+
+  /// Called when a node is start dragging.
   final void Function(T data)? onDraggingStart;
+
+  /// Called when a node is dragging.
   final void Function(T data)? onDraggingUpdate;
+
+  /// Called when a node is end dragging.
   final void Function(T data)? onDraggingEnd;
 
   @override
-  State<ForceDirectedGraphWidget<T>> createState() =>
-      _ForceDirectedGraphState<T>();
+  State<ForceDirectedGraphWidget<T>> createState() => _ForceDirectedGraphState<T>();
 }
 
 class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
@@ -96,8 +115,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     });
 
     final edges = _controller.graph.edges.map((e) {
-      final child =
-          widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
+      final child = widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
       if (child is EdgeWidget) {
         assert(child.edge == e);
         return child;
@@ -117,8 +135,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
         _scale = _controller.scale;
       },
       onScaleUpdate: (details) {
-        final scale = (_scale * details.scale)
-            .clamp(_controller.minScale, _controller.maxScale);
+        final scale = (_scale * details.scale).clamp(_controller.minScale, _controller.maxScale);
         _controller.scale = scale;
       },
       child: RepaintBoundary(
@@ -176,8 +193,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(
-      BuildContext context, ForceDirectedGraphRenderObject renderObject) {
+  void updateRenderObject(BuildContext context, ForceDirectedGraphRenderObject renderObject) {
     renderObject
       ..graph = graph
       .._scale = scale;
@@ -187,8 +203,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
 class ForceDirectedGraphRenderObject extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, ForceDirectedGraphParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox,
-            ForceDirectedGraphParentData> {
+        RenderBoxContainerDefaultsMixin<RenderBox, ForceDirectedGraphParentData> {
   ForceDirectedGraphRenderObject(
       {required ForceDirectedGraph graph,
       required this.controller,
@@ -264,8 +279,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         // 绘制边
-        final edge =
-            _graph.edges.firstWhere((element) => element == parentData.edge);
+        final edge = _graph.edges.firstWhere((element) => element == parentData.edge);
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
@@ -279,8 +293,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(center.dx, center.dy)
           ..scale(_scale, _scale)
           ..translate(-center.dx, -center.dy)
-          ..translate(
-              childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
+          ..translate(childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
           ..rotateZ(edge.angle)
           ..translate(-childCenter.dx, -childCenter.dy);
       } else {
@@ -332,8 +345,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         // 移动节点
         onDraggingUpdate(_draggingNode!.data);
         _draggingNode!.isFixed = true;
-        _downPosition = _downPosition! +
-            vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
+        _downPosition = _downPosition! + vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         _draggingNode!.position = _downPosition!;
         markNeedsPaint();
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -342,8 +354,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       } else {
         // 移动画布
         for (final node in _graph.nodes) {
-          node.position +=
-              vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
+          node.position += vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         }
         markNeedsPaint();
       }
