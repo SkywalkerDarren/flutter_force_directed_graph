@@ -13,7 +13,7 @@ visualization in your Flutter applications.
 
 ## Demo
 
-![example.gif](docs/example.gif)
+![example.gif](doc/example.gif)
 
 ## Getting Started
 
