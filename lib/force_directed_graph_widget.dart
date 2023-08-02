@@ -18,11 +18,17 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
     required this.controller,
     required this.nodesBuilder,
     required this.edgesBuilder,
+    this.onDraggingStart,
+    this.onDraggingUpdate,
+    this.onDraggingEnd,
   });
 
   final ForceDirectedGraphController<T> controller;
   final NodeBuilder<T> nodesBuilder;
   final EdgeBuilder<T> edgesBuilder;
+  final void Function(T data)? onDraggingStart;
+  final void Function(T data)? onDraggingUpdate;
+  final void Function(T data)? onDraggingEnd;
 
   @override
   State<ForceDirectedGraphWidget<T>> createState() => _ForceDirectedGraphState<T>();
@@ -104,8 +110,6 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       return Container();
     }
 
-
-
     return GestureDetector(
       onScaleStart: (details) {
         _scale = _controller.scale;
@@ -122,6 +126,15 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
             scale: _controller.scale,
             nodes: nodes,
             edges: edges,
+            onDraggingStart: (data) {
+              widget.onDraggingStart?.call(data);
+            },
+            onDraggingEnd: (data) {
+              widget.onDraggingEnd?.call(data);
+            },
+            onDraggingUpdate: (data) {
+              widget.onDraggingUpdate?.call(data);
+            },
           ),
         ),
       ),
@@ -133,6 +146,9 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   final ForceDirectedGraph graph;
   final ForceDirectedGraphController controller;
   final double scale;
+  final void Function(dynamic data) onDraggingStart;
+  final void Function(dynamic data) onDraggingEnd;
+  final void Function(dynamic data) onDraggingUpdate;
 
   ForceDirectedGraphBody({
     Key? key,
@@ -141,11 +157,14 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
     required this.scale,
     required Iterable<NodeWidget> nodes,
     required Iterable<EdgeWidget> edges,
+    required this.onDraggingUpdate,
+    required this.onDraggingStart,
+    required this.onDraggingEnd,
   }) : super(key: key, children: [...edges, ...nodes]);
 
   @override
   ForceDirectedGraphRenderObject createRenderObject(BuildContext context) {
-    return ForceDirectedGraphRenderObject(graph: graph, controller: controller);
+    return ForceDirectedGraphRenderObject(graph: graph, controller: controller, onDraggingUpdate: onDraggingUpdate, onDraggingStart: onDraggingStart, onDraggingEnd: onDraggingEnd);
   }
 
   @override
@@ -160,10 +179,15 @@ class ForceDirectedGraphRenderObject extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, ForceDirectedGraphParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, ForceDirectedGraphParentData> {
-  ForceDirectedGraphRenderObject({required ForceDirectedGraph graph, required this.controller})
+  ForceDirectedGraphRenderObject(
+      {required ForceDirectedGraph graph, required this.controller, required this.onDraggingUpdate, required this.onDraggingStart, required this.onDraggingEnd})
       : _graph = graph;
 
   final ForceDirectedGraphController controller;
+
+  final void Function(dynamic data) onDraggingStart;
+  final void Function(dynamic data) onDraggingUpdate;
+  final void Function(dynamic data) onDraggingEnd;
 
   ForceDirectedGraph _graph;
 
@@ -282,6 +306,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
     if (event is PointerDownEvent) {
       if (_draggingNode != null) {
+        onDraggingStart(_draggingNode!.data);
         _downPosition = _draggingNode!.position;
         _draggingNode!.isFixed = true;
       }
@@ -289,6 +314,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
     } else if (event is PointerMoveEvent) {
       if (_draggingNode != null) {
         // 移动节点
+        onDraggingUpdate(_draggingNode!.data);
         _draggingNode!.isFixed = true;
         _downPosition = _downPosition! + vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         _draggingNode!.position = _downPosition!;
@@ -305,6 +331,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       }
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       if (_draggingNode != null) {
+        onDraggingEnd(_draggingNode!.data);
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           controller.needUpdate();
         });

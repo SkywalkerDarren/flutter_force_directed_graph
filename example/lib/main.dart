@@ -32,35 +32,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late ForceDirectedGraphController<int> controller =
+  late final ForceDirectedGraphController<int> _controller =
       ForceDirectedGraphController(
     graph: ForceDirectedGraph.generateNTree(
       nodeCount: 50,
       maxDepth: 3,
       n: 4,
       generator: () {
-        nodeCount++;
-        return nodeCount;
+        _nodeCount++;
+        return _nodeCount;
       },
     ),
   );
-  int nodeCount = 0;
-  Set<int> nodes = {};
-  Set<String> edges = {};
+  int _nodeCount = 0;
+  final Set<int> _nodes = {};
+  final Set<String> _edges = {};
   double _scale = 1.0;
-  int locatedTo = 0;
+  int _locatedTo = 0;
+  int? _draggingData;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      controller.needUpdate();
+      _controller.needUpdate();
     });
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -76,69 +77,69 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  final a = nodeCount;
-                  nodeCount++;
-                  controller.addNode(a);
-                  nodes.clear();
-                  edges.clear();
+                  final a = _nodeCount;
+                  _nodeCount++;
+                  _controller.addNode(a);
+                  _nodes.clear();
+                  _edges.clear();
                 },
                 child: const Text('add node'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  for (final node in nodes) {
-                    controller.deleteNodeByData(node);
+                  for (final node in _nodes) {
+                    _controller.deleteNodeByData(node);
                   }
-                  nodes.clear();
-                  edges.clear();
+                  _nodes.clear();
+                  _edges.clear();
                 },
                 child: const Text('del node'),
               ),
               const SizedBox(width: 4),
               ElevatedButton(
                 onPressed: () {
-                  if (nodes.length == 2) {
-                    final a = nodes.first;
-                    final b = nodes.last;
-                    controller.addEdgeByData(a, b);
+                  if (_nodes.length == 2) {
+                    final a = _nodes.first;
+                    final b = _nodes.last;
+                    _controller.addEdgeByData(a, b);
                   }
-                  nodes.clear();
-                  edges.clear();
+                  _nodes.clear();
+                  _edges.clear();
                 },
                 child: const Text('add edge'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  for (final edge in edges) {
+                  for (final edge in _edges) {
                     final a = int.parse(edge.split(' <-> ').first);
                     final b = int.parse(edge.split(' <-> ').last);
-                    controller.deleteEdgeByData(a, b);
+                    _controller.deleteEdgeByData(a, b);
                   }
-                  nodes.clear();
-                  edges.clear();
+                  _nodes.clear();
+                  _edges.clear();
                 },
                 child: const Text('del edge'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  controller.needUpdate();
+                  _controller.needUpdate();
                 },
                 child: const Text('update'),
               ),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    nodes.clear();
-                    edges.clear();
-                    nodeCount = 0;
-                    locatedTo = 0;
-                    controller.graph = ForceDirectedGraph.generateNTree(
+                    _nodes.clear();
+                    _edges.clear();
+                    _nodeCount = 0;
+                    _locatedTo = 0;
+                    _controller.graph = ForceDirectedGraph.generateNTree(
                       nodeCount: 50,
                       maxDepth: 3,
                       n: 4,
                       generator: () {
-                        nodeCount++;
-                        return nodeCount;
+                        _nodeCount++;
+                        return _nodeCount;
                       },
                     );
                   });
@@ -147,21 +148,21 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  controller.center();
+                  _controller.center();
                 },
                 child: const Text('center'),
               ),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    locatedTo++;
-                    locatedTo = locatedTo % controller.graph.nodes.length;
-                    final data = controller.graph.nodes[locatedTo].data;
-                    controller.locateTo(data);
+                    _locatedTo++;
+                    _locatedTo = _locatedTo % _controller.graph.nodes.length;
+                    final data = _controller.graph.nodes[_locatedTo].data;
+                    _controller.locateTo(data);
                   });
                 },
                 child:
-                    Text('locateTo ${controller.graph.nodes[locatedTo].data}'),
+                    Text('locateTo ${_controller.graph.nodes[_locatedTo].data}'),
               ),
               Slider(
                 value: _scale,
@@ -170,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onChanged: (value) {
                   setState(() {
                     _scale = value;
-                    controller.scale = value;
+                    _controller.scale = value;
                   });
                 },
               )
@@ -178,16 +179,38 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
             child: ForceDirectedGraphWidget(
-              controller: controller,
+              controller: _controller,
+              onDraggingStart: (data) {
+                setState(() {
+                  _draggingData = data;
+                });
+              },
+              onDraggingEnd: (data) {
+                setState(() {
+                  _draggingData = null;
+                });
+              },
+              onDraggingUpdate: (data) {
+
+              },
               nodesBuilder: (context, data) {
+                final Color color;
+                if (_draggingData == data) {
+                  color = Colors.yellow;
+                } else if (_nodes.contains(data)) {
+                  color = Colors.green;
+                } else {
+                  color = Colors.red;
+                }
+
                 return GestureDetector(
                   onTap: () {
                     print("onTap $data");
                     setState(() {
-                      if (nodes.contains(data)) {
-                        nodes.remove(data);
+                      if (_nodes.contains(data)) {
+                        _nodes.remove(data);
                       } else {
-                        nodes.add(data);
+                        _nodes.add(data);
                       }
                     });
                   },
@@ -195,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: nodes.contains(data) ? Colors.green : Colors.red,
+                      color: color,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
@@ -204,14 +227,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               edgesBuilder: (context, a, b, distance) {
+                final Color color;
+                if (_draggingData == a || _draggingData == b) {
+                  color = Colors.yellow;
+                } else if (_edges.contains("$a <-> $b")) {
+                  color = Colors.green;
+                } else {
+                  color = Colors.blue;
+                }
                 return GestureDetector(
                   onTap: () {
                     final edge = "$a <-> $b";
                     setState(() {
-                      if (edges.contains(edge)) {
-                        edges.remove(edge);
+                      if (_edges.contains(edge)) {
+                        _edges.remove(edge);
                       } else {
-                        edges.add(edge);
+                        _edges.add(edge);
                       }
                       print("onTap $a <-$distance-> $b");
                     });
@@ -219,9 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     width: distance,
                     height: 16,
-                    color: edges.contains("$a <-> $b")
-                        ? Colors.green
-                        : Colors.blue,
+                    color: color,
                     alignment: Alignment.center,
                     child: Text('$a <-> $b'),
                   ),
