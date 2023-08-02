@@ -160,8 +160,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     _controller.locateTo(data);
                   });
                 },
-                child:
-                    Text('locateTo ${_controller.graph.nodes[_locatedTo].data}'),
+                child: Text(
+                    'locateTo ${_controller.graph.nodes[_locatedTo].data}'),
               ),
               Slider(
                 value: _scale,
@@ -189,9 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   _draggingData = null;
                 });
               },
-              onDraggingUpdate: (data) {
-
-              },
+              onDraggingUpdate: (data) {},
               nodesBuilder: (context, data) {
                 final Color color;
                 if (_draggingData == data) {

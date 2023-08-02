@@ -1,7 +1,6 @@
 import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-
 void main() {
   group('Force Directed Graph', () {
     test('fdg test', () {
@@ -20,7 +19,6 @@ void main() {
       fdg.addEdge(nodeA.connect(nodeB));
       fdg.addEdge(nodeA.connect(nodeC));
       fdg.addEdge(nodeB.connect(nodeC));
-
 
       int stepLeft = 120 * 1000;
       while (stepLeft > 0) {

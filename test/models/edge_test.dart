@@ -26,7 +26,8 @@ void main() {
     });
 
     test('Attraction force calculation', () {
-      expect(edge.calculateAttractionForce(k: 10), closeTo(50, 0.0001));
+      expect(edge.calculateAttractionForce(k: 10, length: 50),
+          closeTo(-450, 0.0001));
     });
 
     test('Attraction force direction for node A', () {
@@ -45,15 +46,16 @@ void main() {
       const config = GraphConfig();
 
       for (int i = 0; i < 100; i++) {
-        final f1 = nodeA.calculateRepulsionForce(nodeB, k: config.kRepulsion);
-        final f2 = nodeB.calculateRepulsionForce(nodeA, k: config.kRepulsion);
+        final f1 = nodeA.calculateRepulsionForce(nodeB, k: config.repulsion);
+        final f2 = nodeB.calculateRepulsionForce(nodeA, k: config.repulsion);
         nodeA.applyForce(f1);
         nodeB.applyForce(f2);
         print(nodeA);
         print(nodeB);
         print('fr: ${f1.length}');
         print('计算斥力-------------------');
-        final fa = edge.calculateAttractionForce(k: config.kElasticity);
+        final fa = edge.calculateAttractionForce(
+            k: config.elasticity, length: config.length);
         final faa = edge.calculateAttractionForceDirectionA();
         final fab = edge.calculateAttractionForceDirectionB();
         nodeA.applyForce(faa * fa);
@@ -63,27 +65,27 @@ void main() {
         print("fa=$fa, faa=$faa, fab=$fab");
         print('计算引力-------------------');
         final canUpdateA = nodeA.updatePosition(
-          scaling: config.kScaling,
-          minVelocity: config.kMinVelocity,
-          maxStaticFriction: config.kMaxStaticFriction,
+          scaling: config.scaling,
+          minVelocity: config.minVelocity,
+          maxStaticFriction: config.maxStaticFriction,
         );
         final canUpdateB = nodeB.updatePosition(
-          scaling: config.kScaling,
-          minVelocity: config.kMinVelocity,
-          maxStaticFriction: config.kMaxStaticFriction,
+          scaling: config.scaling,
+          minVelocity: config.minVelocity,
+          maxStaticFriction: config.maxStaticFriction,
         );
         if (!canUpdateA && !canUpdateB) {
           print('平衡, $nodeA, $nodeB, ${edge.distance}');
 
           final a = nodeA.updatePosition(
-            scaling: config.kScaling,
-            minVelocity: config.kMinVelocity,
-            maxStaticFriction: config.kMaxStaticFriction,
+            scaling: config.scaling,
+            minVelocity: config.minVelocity,
+            maxStaticFriction: config.maxStaticFriction,
           );
           final b = nodeB.updatePosition(
-            scaling: config.kScaling,
-            minVelocity: config.kMinVelocity,
-            maxStaticFriction: config.kMaxStaticFriction,
+            scaling: config.scaling,
+            minVelocity: config.minVelocity,
+            maxStaticFriction: config.maxStaticFriction,
           );
           expect(b, false);
           expect(a, false);

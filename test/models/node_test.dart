@@ -2,7 +2,6 @@ import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vector_math/vector_math.dart';
 
-
 void main() {
   group('Node', () {
     const config = GraphConfig();
@@ -13,10 +12,10 @@ void main() {
       final node2 = Node(2);
       node2.position = Vector2(1, 0);
 
-      final force = node1.calculateRepulsionForce(node2, k: config.kRepulsion);
+      final force = node1.calculateRepulsionForce(node2, k: config.repulsion);
 
-      expect(force.x, closeTo(-0.5, 0.001));
-      expect(force.y, closeTo(0.5, 0.001));
+      expect(force.x, closeTo(-450, 0.001));
+      expect(force.y, closeTo(450, 0.001));
     });
 
     test('max repulsion distance', () {
@@ -25,10 +24,10 @@ void main() {
       final node2 = Node(2);
       node2.position = Vector2(0, 0);
 
-      final force = node1.calculateRepulsionForce(node2, k: config.kRepulsion);
+      final force = node1.calculateRepulsionForce(node2, k: config.repulsion);
 
       expect(force.x, closeTo(0, 0.001));
-      expect(force.y, closeTo(2, 0.001));
+      expect(force.y, closeTo(9, 0.001));
     });
 
     test('should connect two nodes with an edge', () {

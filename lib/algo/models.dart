@@ -81,7 +81,6 @@ class Node<T> {
 class Edge {
   final Node a;
   final Node b;
-  final double length = 50.0;
 
   Edge(this.a, this.b);
 
@@ -97,7 +96,7 @@ class Edge {
   }
 
   // 胡克定律计算引力
-  double calculateAttractionForce({required double k}) {
+  double calculateAttractionForce({required double k, required double length}) {
     final distance = this.distance;
     final deformation = distance - length;
     return k * deformation;
@@ -132,30 +131,32 @@ class Edge {
 
 class GraphConfig {
   /// 最大静摩擦力 >0
-  final double kMaxStaticFriction;
+  final double maxStaticFriction;
 
   /// 力缩放系数 0-1
-  final double kScaling;
+  final double scaling;
 
   /// 弹力系数 >0
-  final double kElasticity;
+  final double elasticity;
 
   /// 斥力系数 >0
-  final double kRepulsion;
+  final double repulsion;
 
   /// 斥力最大范围 >0
-  final double kRepulsionRange;
+  final double repulsionRange;
 
   /// 最低速度 >0
-  final double kMinVelocity;
+  final double minVelocity;
+
+  final double length = 50.0;
 
   const GraphConfig({
-    this.kMaxStaticFriction = 20.0,
-    this.kScaling = 0.01,
-    this.kElasticity = 1.0,
-    this.kRepulsion = 30.0,
-    this.kRepulsionRange = 150.0,
-    this.kMinVelocity = 5,
+    this.maxStaticFriction = 20.0,
+    this.scaling = 0.01,
+    this.elasticity = 1.0,
+    this.repulsion = 30.0,
+    this.repulsionRange = 150.0,
+    this.minVelocity = 5,
   });
 }
 
@@ -253,17 +254,17 @@ class ForceDirectedGraph<T> {
     for (final node in nodes) {
       for (final other in nodes) {
         if (node == other) continue;
-        if (node.position.distanceTo(other.position) > config.kRepulsionRange) {
+        if (node.position.distanceTo(other.position) > config.repulsionRange) {
           continue;
         }
         final repulsionForce =
-            node.calculateRepulsionForce(other, k: config.kRepulsion);
+            node.calculateRepulsionForce(other, k: config.repulsion);
         node.applyForce(repulsionForce);
       }
     }
     for (final edge in edges) {
-      final attractionForce =
-          edge.calculateAttractionForce(k: config.kElasticity);
+      final attractionForce = edge.calculateAttractionForce(
+          k: config.elasticity, length: config.length);
       final attractionForceDirectionA =
           edge.calculateAttractionForceDirectionA();
       final fa = attractionForceDirectionA * attractionForce;
@@ -273,9 +274,9 @@ class ForceDirectedGraph<T> {
     bool positionUpdated = false;
     for (final node in nodes) {
       positionUpdated |= node.updatePosition(
-        scaling: config.kScaling,
-        minVelocity: config.kMinVelocity,
-        maxStaticFriction: config.kMaxStaticFriction,
+        scaling: config.scaling,
+        minVelocity: config.minVelocity,
+        maxStaticFriction: config.maxStaticFriction,
       );
     }
     if (!positionUpdated) {
