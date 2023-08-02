@@ -5,13 +5,15 @@ import 'package:vector_math/vector_math.dart';
 
 void main() {
   group('Node', () {
+    const config = GraphConfig();
+
     test('should calculate repulsive force between two nodes', () {
       final node1 = Node(1);
       node1.position = Vector2(0, 1);
       final node2 = Node(2);
       node2.position = Vector2(1, 0);
 
-      final force = node1.calculateRepulsionForce(node2);
+      final force = node1.calculateRepulsionForce(node2, k: config.kRepulsion);
 
       expect(force.x, closeTo(-0.5, 0.001));
       expect(force.y, closeTo(0.5, 0.001));
@@ -23,7 +25,7 @@ void main() {
       final node2 = Node(2);
       node2.position = Vector2(0, 0);
 
-      final force = node1.calculateRepulsionForce(node2);
+      final force = node1.calculateRepulsionForce(node2, k: config.kRepulsion);
 
       expect(force.x, closeTo(0, 0.001));
       expect(force.y, closeTo(2, 0.001));

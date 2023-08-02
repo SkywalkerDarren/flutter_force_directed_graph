@@ -42,17 +42,18 @@ void main() {
     });
 
     test('Balance test', () {
+      const config = GraphConfig();
 
       for (int i = 0; i < 100; i++) {
-        final f1 = nodeA.calculateRepulsionForce(nodeB);
-        final f2 = nodeB.calculateRepulsionForce(nodeA);
+        final f1 = nodeA.calculateRepulsionForce(nodeB, k: config.kRepulsion);
+        final f2 = nodeB.calculateRepulsionForce(nodeA, k: config.kRepulsion);
         nodeA.applyForce(f1);
         nodeB.applyForce(f2);
         print(nodeA);
         print(nodeB);
         print('fr: ${f1.length}');
         print('计算斥力-------------------');
-        final fa = edge.calculateAttractionForce();
+        final fa = edge.calculateAttractionForce(k: config.kElasticity);
         final faa = edge.calculateAttractionForceDirectionA();
         final fab = edge.calculateAttractionForceDirectionB();
         nodeA.applyForce(faa * fa);
@@ -61,13 +62,29 @@ void main() {
         print(nodeB);
         print("fa=$fa, faa=$faa, fab=$fab");
         print('计算引力-------------------');
-        final canUpdateA = nodeA.updatePosition();
-        final canUpdateB = nodeB.updatePosition();
+        final canUpdateA = nodeA.updatePosition(
+          scaling: config.kScaling,
+          minVelocity: config.kMinVelocity,
+          maxStaticFriction: config.kMaxStaticFriction,
+        );
+        final canUpdateB = nodeB.updatePosition(
+          scaling: config.kScaling,
+          minVelocity: config.kMinVelocity,
+          maxStaticFriction: config.kMaxStaticFriction,
+        );
         if (!canUpdateA && !canUpdateB) {
           print('平衡, $nodeA, $nodeB, ${edge.distance}');
 
-          final a = nodeA.updatePosition();
-          final b = nodeB.updatePosition();
+          final a = nodeA.updatePosition(
+            scaling: config.kScaling,
+            minVelocity: config.kMinVelocity,
+            maxStaticFriction: config.kMaxStaticFriction,
+          );
+          final b = nodeB.updatePosition(
+            scaling: config.kScaling,
+            minVelocity: config.kMinVelocity,
+            maxStaticFriction: config.kMaxStaticFriction,
+          );
           expect(b, false);
           expect(a, false);
 
