@@ -5,6 +5,14 @@ import 'package:collection/collection.dart';
 class ForceDirectedGraphController<T> extends ChangeNotifier {
   final ForceDirectedGraph<T> _graph;
 
+  set graph(ForceDirectedGraph<T> graph) {
+    _graph.nodes.clear();
+    _graph.edges.clear();
+    _graph.nodes.addAll(graph.nodes);
+    _graph.edges.addAll(graph.edges);
+    notifyListeners();
+  }
+
   ForceDirectedGraph<T> get graph => _graph;
 
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph}) : _graph = graph ?? ForceDirectedGraph();

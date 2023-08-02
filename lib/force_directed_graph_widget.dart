@@ -62,6 +62,19 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   }
 
   @override
+  void didUpdateWidget(covariant ForceDirectedGraphWidget<T> oldWidget) {
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_onControllerChange);
+      widget.controller.addListener(_onControllerChange);
+
+      if (_ticker.isActive) {
+        _ticker.stop();
+      }
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final nodes = _controller.graph.nodes.map((e) {
       final child = widget.nodesBuilder(context, e.data);
