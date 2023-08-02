@@ -2,17 +2,6 @@ import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
-// 最大静摩擦力
-const kMaxStaticFriction = 10.0;
-// 力缩放系数 0-1
-const kScaling = 0.01;
-// 弹力系数 >0
-const kElasticity = 0.5;
-// 斥力系数 >0
-const kRepulsion = 15.0;
-// 最低速度 >0
-const kMinVelocity = 5;
-
 class Node<T> {
   final T data;
   final double mass = 1.0;
@@ -24,7 +13,7 @@ class Node<T> {
   Node(this.data);
 
   // 库仑定律计算排斥力
-  Vector2 calculateRepulsionForce(Node other, {double k = kRepulsion}) {
+  Vector2 calculateRepulsionForce(Node other, {required double k}) {
     final distance = position.distanceTo(other.position);
     final direction = (position - other.position).normalized();
     return direction * k * k / distance;
@@ -39,15 +28,19 @@ class Node<T> {
   /// 在一个时间步长内，根据力学计算节点的位移，
   /// 还需要考虑当前节点是否静止，然后考虑静摩擦力，考虑动摩擦力
   /// 静止状态下和运动状态下的计算方式应该不同
-  bool updatePosition({double scaling = kScaling}) {
+  bool updatePosition({
+    required double scaling,
+    required double minVelocity,
+    required double maxStaticFriction,
+  }) {
     if (isFixed) {
       force = Vector2.zero();
       velocity = Vector2.zero();
       return false;
     }
-    if (velocity.length < kMinVelocity) {
+    if (velocity.length < minVelocity) {
       // 静止状态
-      if (force.length < kMaxStaticFriction) {
+      if (force.length < maxStaticFriction) {
         // 静止状态下力度太小，不需要计算
         velocity = Vector2.zero();
         force = Vector2.zero();
@@ -56,7 +49,7 @@ class Node<T> {
     }
 
     // 运动状态
-    final friction = -velocity.normalized() * kMaxStaticFriction;
+    final friction = -velocity.normalized() * maxStaticFriction;
     force += friction;
     velocity += force / mass;
     position += velocity * scaling;
@@ -104,7 +97,7 @@ class Edge {
   }
 
   // 胡克定律计算引力
-  double calculateAttractionForce({double k = kElasticity}) {
+  double calculateAttractionForce({required double k}) {
     final distance = this.distance;
     final deformation = distance - length;
     return k * deformation;
@@ -137,11 +130,93 @@ class Edge {
   int get hashCode => a.hashCode ^ b.hashCode;
 }
 
+class GraphConfig {
+  /// 最大静摩擦力 >0
+  final double kMaxStaticFriction;
+
+  /// 力缩放系数 0-1
+  final double kScaling;
+
+  /// 弹力系数 >0
+  final double kElasticity;
+
+  /// 斥力系数 >0
+  final double kRepulsion;
+
+  /// 斥力最大范围 >0
+  final double kRepulsionRange;
+
+  /// 最低速度 >0
+  final double kMinVelocity;
+
+  const GraphConfig({
+    this.kMaxStaticFriction = 20.0,
+    this.kScaling = 0.01,
+    this.kElasticity = 1.0,
+    this.kRepulsion = 30.0,
+    this.kRepulsionRange = 150.0,
+    this.kMinVelocity = 5,
+  });
+}
+
 class ForceDirectedGraph<T> {
   final List<Node<T>> nodes = [];
   final List<Edge> edges = [];
+  final GraphConfig config;
 
-  ForceDirectedGraph();
+  ForceDirectedGraph({this.config = const GraphConfig()});
+
+  ForceDirectedGraph.generateNTree({
+    required int nodeCount,
+    required int maxDepth,
+    required int n,
+    required T Function() generator,
+    this.config = const GraphConfig(),
+  }) {
+    Random random = Random();
+    final root = Node(generator());
+    nodes.add(root);
+    _createNTree(root, nodeCount - 1, maxDepth - 1, n, random, generator);
+  }
+
+  void _createNTree(
+    Node<T> node,
+    int remainingNodes,
+    int remainingDepth,
+    int n,
+    Random random,
+    T Function() generator,
+  ) {
+    if (remainingNodes <= 0 || remainingDepth == 0) {
+      return;
+    }
+
+    int nodesAtThisLevel = min(n, remainingNodes);
+    final children = [];
+    for (int i = 0; i < nodesAtThisLevel; i++) {
+      final newNode = Node(generator());
+      children.add(newNode);
+      addNode(newNode);
+      addEdge(Edge(node, newNode));
+      remainingNodes--;
+    }
+
+    for (final childNode in children) {
+      if (remainingNodes <= 0) {
+        break;
+      }
+      int childNodeCount = random.nextInt(remainingNodes + 1);
+      _createNTree(
+        childNode,
+        childNodeCount,
+        remainingDepth - 1,
+        n,
+        random,
+        generator,
+      );
+      remainingNodes -= childNodeCount;
+    }
+  }
 
   void addNode(Node<T> node) {
     if (nodes.contains(node)) {
@@ -178,25 +253,35 @@ class ForceDirectedGraph<T> {
     for (final node in nodes) {
       for (final other in nodes) {
         if (node == other) continue;
-        final repulsionForce = node.calculateRepulsionForce(other);
+        if (node.position.distanceTo(other.position) > config.kRepulsionRange) {
+          continue;
+        }
+        final repulsionForce =
+            node.calculateRepulsionForce(other, k: config.kRepulsion);
         node.applyForce(repulsionForce);
       }
     }
     for (final edge in edges) {
-      final attractionForce = edge.calculateAttractionForce();
-      final attractionForceDirectionA = edge.calculateAttractionForceDirectionA();
+      final attractionForce =
+          edge.calculateAttractionForce(k: config.kElasticity);
+      final attractionForceDirectionA =
+          edge.calculateAttractionForceDirectionA();
       final fa = attractionForceDirectionA * attractionForce;
       edge.a.applyForce(fa);
       edge.b.applyForce(-fa);
     }
     bool positionUpdated = false;
     for (final node in nodes) {
-      positionUpdated |= node.updatePosition();
+      positionUpdated |= node.updatePosition(
+        scaling: config.kScaling,
+        minVelocity: config.kMinVelocity,
+        maxStaticFriction: config.kMaxStaticFriction,
+      );
     }
     if (!positionUpdated) {
-        for (final node in nodes) {
-          node.isFixed = false;
-        }
+      for (final node in nodes) {
+        node.isFixed = false;
+      }
     }
     return positionUpdated;
   }

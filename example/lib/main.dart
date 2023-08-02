@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:flutter_force_directed_graph/force_directed_graph_controller.dart';
 import 'package:flutter_force_directed_graph/force_directed_graph_widget.dart';
 
@@ -31,20 +32,30 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
+  late ForceDirectedGraphController<int> controller =
+      ForceDirectedGraphController(
+    graph: ForceDirectedGraph.generateNTree(
+      nodeCount: 50,
+      maxDepth: 3,
+      n: 4,
+      generator: () {
+        nodeCount++;
+        return nodeCount;
+      },
+    ),
+  );
   int nodeCount = 0;
   Set<int> nodes = {};
   Set<String> edges = {};
   double _scale = 1.0;
+  int locatedTo = 0;
 
   @override
   void initState() {
     super.initState();
-    final a = nodeCount;
-    nodeCount++;
-    final b = nodeCount;
-    nodeCount++;
-    controller.addEdgeByData(a, b);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.needUpdate();
+    });
   }
 
   @override
@@ -83,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('del node'),
               ),
+              const SizedBox(width: 4),
               ElevatedButton(
                 onPressed: () {
                   if (nodes.length == 2) {
@@ -102,6 +114,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     final b = int.parse(edge.split(' <-> ').last);
                     controller.deleteEdgeByData(a, b);
                   }
+                  nodes.clear();
+                  edges.clear();
                 },
                 child: const Text('del edge'),
               ),
@@ -110,6 +124,44 @@ class _MyHomePageState extends State<MyHomePage> {
                   controller.needUpdate();
                 },
                 child: const Text('update'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    nodes.clear();
+                    edges.clear();
+                    nodeCount = 0;
+                    locatedTo = 0;
+                    controller.graph = ForceDirectedGraph.generateNTree(
+                      nodeCount: 50,
+                      maxDepth: 3,
+                      n: 4,
+                      generator: () {
+                        nodeCount++;
+                        return nodeCount;
+                      },
+                    );
+                  });
+                },
+                child: const Text('random'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  controller.center();
+                },
+                child: const Text('center'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    locatedTo++;
+                    locatedTo = locatedTo % controller.graph.nodes.length;
+                    final data = controller.graph.nodes[locatedTo].data;
+                    controller.locateTo(data);
+                  });
+                },
+                child:
+                    Text('locateTo ${controller.graph.nodes[locatedTo].data}'),
               ),
               Slider(
                 value: _scale,
@@ -142,13 +194,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Container(
                     width: 24,
                     height: 24,
+                    decoration: BoxDecoration(
+                      color: nodes.contains(data) ? Colors.green : Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     alignment: Alignment.center,
-                    color: nodes.contains(data) ? Colors.green : Colors.red,
                     child: Text('$data'),
                   ),
                 );
               },
-              edgesBuilder: (context, a, b) {
+              edgesBuilder: (context, a, b, distance) {
                 return GestureDetector(
                   onTap: () {
                     final edge = "$a <-> $b";
@@ -158,13 +213,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       } else {
                         edges.add(edge);
                       }
-                      print("onTap $a <-> $b");
+                      print("onTap $a <-$distance-> $b");
                     });
                   },
                   child: Container(
-                    width: 80,
+                    width: distance,
                     height: 16,
-                    color: edges.contains("$a <-> $b") ? Colors.green : Colors.blue,
+                    color: edges.contains("$a <-> $b")
+                        ? Colors.green
+                        : Colors.blue,
                     alignment: Alignment.center,
                     child: Text('$a <-> $b'),
                   ),
