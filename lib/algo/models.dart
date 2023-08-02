@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
@@ -187,6 +188,27 @@ class ForceDirectedGraph<T> {
     _createNTree(root, nodeCount - 1, maxDepth - 1, n, random, generator);
   }
 
+  ForceDirectedGraph.fromJson(String json,
+      {this.config = const GraphConfig()}) {
+    final data = jsonDecode(json);
+    final nodeMap = <T, Node<T>>{};
+    for (final nodeData in data['nodes']) {
+      final node = Node(nodeData['data'] as T);
+      node.position =
+          Vector2(nodeData['position']['x'], nodeData['position']['y']);
+      nodes.add(node);
+      nodeMap[node.data] = node;
+    }
+    for (final edgeData in data['edges']) {
+      final a = nodeMap[edgeData['a']];
+      final b = nodeMap[edgeData['b']];
+      if (a != null && b != null) {
+        final edge = Edge(a, b);
+        edges.add(edge);
+      }
+    }
+  }
+
   void _createNTree(
     Node<T> node,
     int remainingNodes,
@@ -297,5 +319,22 @@ class ForceDirectedGraph<T> {
   @override
   String toString() {
     return "\nnodes:\n$nodes,\nedges:\n$edges";
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'nodes': nodes
+          .map((e) => {
+                'data': e.data,
+                'position': {'x': e.position.x, 'y': e.position.y},
+              })
+          .toList(),
+      'edges': edges
+          .map((e) => {
+                'a': e.a.data,
+                'b': e.b.data,
+              })
+          .toList(),
+    });
   }
 }

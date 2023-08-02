@@ -42,8 +42,15 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
       sum.add(node.position);
     }
     sum.scale(1.0 / _graph.nodes.length);
+    locateToPosition(sum.x, sum.y);
+    notifyListeners();
+  }
+
+  /// Locate to the given position.
+  void locateToPosition(double x, double y) {
+    final position = Vector2(x, y);
     for (final node in _graph.nodes) {
-      node.position -= sum;
+      node.position -= position;
     }
     notifyListeners();
   }
@@ -54,9 +61,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
         .firstWhereOrNull((element) => element.data == data)
         ?.position;
     if (located != null) {
-      for (final node in _graph.nodes) {
-        node.position -= located;
-      }
+      locateToPosition(located.x, located.y);
       notifyListeners();
     }
   }
@@ -123,5 +128,10 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   /// Notifies listeners that they should update.
   void needUpdate() {
     notifyListeners();
+  }
+
+  /// Serialize to json.
+  String toJson() {
+    return _graph.toJson();
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
 
@@ -48,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double _scale = 1.0;
   int _locatedTo = 0;
   int? _draggingData;
+  String? _json;
 
   @override
   void initState() {
@@ -160,6 +163,23 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: Text(
                     'locateTo ${_controller.graph.nodes[_locatedTo].data}'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    if (_json != null) {
+                      _controller.graph = ForceDirectedGraph.fromJson(_json!);
+                      _nodes.clear();
+                      _edges.clear();
+                      _nodeCount = 0;
+                      _locatedTo = 0;
+                      _json = null;
+                    } else {
+                      _json = _controller.toJson();
+                    }
+                  });
+                },
+                child: Text(_json == null ? 'save' : 'load'),
               ),
               Slider(
                 value: _scale,

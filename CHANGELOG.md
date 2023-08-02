@@ -6,3 +6,7 @@
 
 * Add comments
 * Refactor code
+
+## 1.0.2
+
+* Add serializable

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,6 +33,16 @@ void main() {
         stepLeft--;
       }
       fail("fdg test failed");
+    });
+
+    test("fdg json", () {
+      int i = 0;
+      final fdg = ForceDirectedGraph.generateNTree(
+          nodeCount: 50, maxDepth: 3, n: 3, generator: () => i++);
+      final json = fdg.toJson();
+      final fdg2 = ForceDirectedGraph.fromJson(json);
+      expect(fdg2.nodes.length, fdg.nodes.length);
+      expect(fdg2.edges.length, fdg.edges.length);
     });
   });
 }
