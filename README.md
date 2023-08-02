@@ -11,6 +11,10 @@ visualization in your Flutter applications.
 - Built-in gesture detection for nodes, edges and graph panning and zooming.
 - Comes with a `ForceDirectedGraphController` for easy management of the graph’s state.
 
+## Demo
+
+![example.gif](docs/example.gif)
+
 ## Getting Started
 
 ### Installation
