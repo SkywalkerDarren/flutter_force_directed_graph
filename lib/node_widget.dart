@@ -6,7 +6,8 @@ import 'force_directed_graph_widget.dart';
 class NodeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
   final Node node;
 
-  const NodeWidget({Key? key, required Widget child, required this.node}) : super(key: key, child: child);
+  const NodeWidget({Key? key, required Widget child, required this.node})
+      : super(key: key, child: child);
 
   @override
   void applyParentData(RenderObject renderObject) {

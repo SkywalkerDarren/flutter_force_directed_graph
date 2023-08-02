@@ -16,8 +16,8 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
 
   ForceDirectedGraph<T> get graph => _graph;
 
-  ForceDirectedGraphController({ForceDirectedGraph<T>? graph}) : _graph = graph ?? ForceDirectedGraph();
-
+  ForceDirectedGraphController({ForceDirectedGraph<T>? graph})
+      : _graph = graph ?? ForceDirectedGraph();
 
   final double minScale = 0.5;
   final double maxScale = 2.0;
@@ -44,7 +44,9 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   }
 
   void locateTo(T data) {
-    final located = _graph.nodes.firstWhereOrNull((element) => element.data == data)?.position;
+    final located = _graph.nodes
+        .firstWhereOrNull((element) => element.data == data)
+        ?.position;
     if (located != null) {
       for (final node in _graph.nodes) {
         node.position -= located;
@@ -66,19 +68,23 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   }
 
   void addEdgeByData(T a, T b) {
-    final nodeA = _graph.nodes.firstWhere((element) => element.data == a, orElse: () => addNode(a));
-    final nodeB = _graph.nodes.firstWhere((element) => element.data == b, orElse: () => addNode(b));
+    final nodeA = _graph.nodes
+        .firstWhere((element) => element.data == a, orElse: () => addNode(a));
+    final nodeB = _graph.nodes
+        .firstWhere((element) => element.data == b, orElse: () => addNode(b));
     addEdgeByNode(nodeA, nodeB);
   }
 
   void deleteNode(Node<T> node) {
     _graph.nodes.remove(node);
-    _graph.edges.removeWhere((element) => element.a == node || element.b == node);
+    _graph.edges
+        .removeWhere((element) => element.a == node || element.b == node);
     notifyListeners();
   }
 
   void deleteNodeByData(T data) {
-    final node = _graph.nodes.firstWhereOrNull((element) => element.data == data);
+    final node =
+        _graph.nodes.firstWhereOrNull((element) => element.data == data);
     if (node != null) {
       deleteNode(node);
     }
@@ -93,7 +99,8 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
     final nodeA = _graph.nodes.firstWhereOrNull((element) => element.data == a);
     final nodeB = _graph.nodes.firstWhereOrNull((element) => element.data == b);
     if (nodeA != null && nodeB != null) {
-      final edge = _graph.edges.firstWhereOrNull((element) => element.a == nodeA && element.b == nodeB);
+      final edge = _graph.edges.firstWhereOrNull(
+          (element) => element.a == nodeA && element.b == nodeB);
       if (edge != null) {
         deleteEdge(edge);
       }
