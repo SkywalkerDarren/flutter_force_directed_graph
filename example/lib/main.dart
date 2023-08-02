@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_force_directed_graph/algo/models.dart';
-import 'package:flutter_force_directed_graph/force_directed_graph_controller.dart';
-import 'package:flutter_force_directed_graph/force_directed_graph_widget.dart';
+import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
 
 void main() {
   runApp(const MyApp());

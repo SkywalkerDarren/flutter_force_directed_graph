@@ -264,13 +264,16 @@ class ForceDirectedGraph<T> {
         if (node.position.distanceTo(other.position) > config.repulsionRange) {
           continue;
         }
-        final repulsionForce = node.calculateRepulsionForce(other, k: config.repulsion);
+        final repulsionForce =
+            node.calculateRepulsionForce(other, k: config.repulsion);
         node.applyForce(repulsionForce);
       }
     }
     for (final edge in edges) {
-      final attractionForce = edge.calculateAttractionForce(k: config.elasticity, length: config.length);
-      final attractionForceDirectionA = edge.calculateAttractionForceDirectionA();
+      final attractionForce = edge.calculateAttractionForce(
+          k: config.elasticity, length: config.length);
+      final attractionForceDirectionA =
+          edge.calculateAttractionForceDirectionA();
       final fa = attractionForceDirectionA * attractionForce;
       edge.a.applyForce(fa);
       edge.b.applyForce(-fa);

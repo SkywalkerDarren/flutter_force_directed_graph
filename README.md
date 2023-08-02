@@ -23,7 +23,7 @@ Add the following in your `pubspec.yaml` file under `dependencies`:
 
 ```yaml
 dependencies:
-  flutter_force_directed_graph: ^1.0.0
+  flutter_force_directed_graph: ^1.0.1
 ```
 
 Then install it by running `flutter pub get` in your terminal.
@@ -34,8 +34,7 @@ Here’s a basic example on how to use the `ForceDirectedGraphWidget`
 and `ForceDirectedGraphController`.
 
 ```dart
-import 'package:flutter_force_directed_graph/force_directed_graph_controller.dart';
-import 'package:flutter_force_directed_graph/force_directed_graph_widget.dart';
+import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
 
 ForceDirectedGraphController<int> controller = ForceDirectedGraphController();
 
