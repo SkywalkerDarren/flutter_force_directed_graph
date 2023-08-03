@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
-import 'package:flutter/src/rendering/debug.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,8 +12,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPaintPointersEnabled = true;
-
     return MaterialApp(
       title: 'Force Directed Graph Demo',
       theme: ThemeData(

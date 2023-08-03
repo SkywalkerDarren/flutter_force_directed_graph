@@ -1,7 +1,10 @@
-import 'package:flutter/widgets.dart';
-import 'package:flutter_force_directed_graph/algo/models.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math.dart';
+
+import '../model/edge.dart';
+import '../model/graph.dart';
+import '../model/node.dart';
 
 class ForceDirectedGraphController<T> extends ChangeNotifier {
   final ForceDirectedGraph<T> _graph;

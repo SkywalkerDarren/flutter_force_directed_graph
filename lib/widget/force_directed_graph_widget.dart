@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_force_directed_graph/edge_widget.dart';
-import 'package:flutter_force_directed_graph/node_widget.dart';
 import 'package:vector_math/vector_math.dart' as vector;
 
+import '../model/edge.dart';
+import '../model/graph.dart';
+import '../model/node.dart';
+import 'edge_widget.dart';
 import 'force_directed_graph_controller.dart';
-import 'algo/models.dart';
+import 'node_widget.dart';
 
 /// A builder that builds a node.
 /// [context] is the build context.

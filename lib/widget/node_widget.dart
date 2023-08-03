@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'algo/models.dart';
+import '../model/node.dart';
 import 'force_directed_graph_widget.dart';
 
 class NodeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
@@ -14,9 +14,6 @@ class NodeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
     assert(renderObject.parentData is ForceDirectedGraphParentData);
     final parentData = renderObject.parentData! as ForceDirectedGraphParentData;
     parentData.node = node;
-    final ForceDirectedGraphRenderObject targetParent =
-        renderObject.parent! as ForceDirectedGraphRenderObject;
-    // targetParent.markNeedsLayout();
   }
 
   @override
