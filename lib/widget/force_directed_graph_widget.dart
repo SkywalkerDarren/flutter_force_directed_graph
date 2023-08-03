@@ -240,6 +240,8 @@ class ForceDirectedGraphRenderObject extends RenderBox
     markNeedsPaint();
   }
 
+  // layout and paint logic ==============================================================
+
   @override
   void setupParentData(RenderBox child) {
     if (child.parentData is! ForceDirectedGraphParentData) {
@@ -312,6 +314,8 @@ class ForceDirectedGraphRenderObject extends RenderBox
     }
     context.canvas.restore();
   }
+
+  // hit logic ================================================================
 
   Node? _draggingNode;
 
