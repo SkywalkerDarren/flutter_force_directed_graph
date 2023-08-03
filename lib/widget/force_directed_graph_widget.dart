@@ -332,7 +332,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
         },
       );
       if (isHit) {
-        _draggingNode = childParentData.node;
+        if (childParentData.node != null) {
+          if (!_isDragging) {
+            _draggingNode = childParentData.node;
+          }
+        }
         return true;
       }
       child = childParentData.previousSibling;
@@ -344,12 +348,14 @@ class ForceDirectedGraphRenderObject extends RenderBox
   bool hitTestSelf(Offset position) => true;
 
   vector.Vector2? _downPosition;
+  bool _isDragging = false;
 
   @override
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
     assert(debugHandleEvent(event, entry));
     if (event is PointerDownEvent) {
       if (_draggingNode != null) {
+        _isDragging = true;
         onDraggingStart(_draggingNode!.data);
         _downPosition = _draggingNode!.position;
         _graph.unStaticAllNodes();
@@ -375,6 +381,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         markNeedsPaint();
       }
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _isDragging = false;
       if (_draggingNode != null) {
         _draggingNode?.unStatic();
         onDraggingEnd(_draggingNode!.data);
