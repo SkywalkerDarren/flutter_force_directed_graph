@@ -346,16 +346,13 @@ class ForceDirectedGraphRenderObject extends RenderBox
       if (_draggingNode != null) {
         onDraggingStart(_draggingNode!.data);
         _downPosition = _draggingNode!.position;
-        for (final node in _graph.nodes) {
-          node.isFixed = false;
-        }
-        _draggingNode!.isFixed = true;
+        _graph.unStaticAllNodes();
+        _draggingNode!.static();
       }
     } else if (event is PointerMoveEvent) {
       if (_draggingNode != null) {
         // move node
         onDraggingUpdate(_draggingNode!.data);
-        _draggingNode!.isFixed = true;
         _downPosition = _downPosition! +
             vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
         _draggingNode!.position = _downPosition!;
@@ -373,6 +370,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       }
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       if (_draggingNode != null) {
+        _draggingNode?.unStatic();
         onDraggingEnd(_draggingNode!.data);
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           controller.needUpdate();

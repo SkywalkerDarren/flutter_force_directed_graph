@@ -5,7 +5,7 @@ import 'package:vector_math/vector_math.dart';
 
 class Node<T> {
   final T data;
-  final double mass = 1.0;
+  double mass = 1.0;
   Vector2 position = (Vector2.random() - Vector2(0.5, 0.5)) * 200;
   Vector2 force = Vector2.zero();
   Vector2 velocity = Vector2.zero();
@@ -49,7 +49,7 @@ class Node<T> {
       }
     }
 
-    // 运动状态
+    // dynamic state
     final friction = -velocity.normalized() * maxStaticFriction;
     force += friction;
     velocity += force / mass;
@@ -77,6 +77,15 @@ class Node<T> {
 
   @override
   int get hashCode => data.hashCode;
+
+  void static() {
+    isFixed = true;
+    // mass = double.infinity;
+  }
+  void unStatic() {
+    isFixed = false;
+    // mass = 1.0;
+  }
 }
 
 class Edge {
@@ -308,12 +317,13 @@ class ForceDirectedGraph<T> {
         maxStaticFriction: config.maxStaticFriction,
       );
     }
-    if (!positionUpdated) {
-      for (final node in nodes) {
-        node.isFixed = false;
-      }
-    }
     return positionUpdated;
+  }
+
+  void unStaticAllNodes() {
+    for (final node in nodes) {
+      node.unStatic();
+    }
   }
 
   @override
