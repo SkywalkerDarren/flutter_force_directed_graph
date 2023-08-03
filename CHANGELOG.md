@@ -10,3 +10,5 @@
 ## 1.0.2
 
 * Add serializable
+* Fix dragging bug
+* Refactor code
