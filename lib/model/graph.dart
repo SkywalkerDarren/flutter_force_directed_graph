@@ -156,6 +156,7 @@ class ForceDirectedGraph<T> {
         scaling: config.scaling,
         minVelocity: config.minVelocity,
         maxStaticFriction: config.maxStaticFriction,
+        damping: config.damping,
       );
     }
     return positionUpdated;
