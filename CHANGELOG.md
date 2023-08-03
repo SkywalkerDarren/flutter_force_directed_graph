@@ -10,3 +10,4 @@
 ## 1.0.2
 
 * Add serializable
+* Add damping
