@@ -260,6 +260,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   @override
   void paint(PaintingContext context, Offset offset) {
     final center = offset + size.center(Offset.zero);
+    context.canvas.save();
     context.canvas.translate(center.dx, center.dy);
     context.canvas.scale(_scale, _scale);
 
@@ -272,8 +273,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
       if (parentData.node != null) {
         // paint node
-        final data = parentData.node!.data;
-        final node = _graph.nodes.firstWhere((element) => element.data == data);
+        final node = parentData.node!;
         final moveOffset = Offset(node.position.x, -node.position.y);
         final finalOffset = -childCenter + moveOffset;
         context.paintChild(child, finalOffset);
@@ -285,8 +285,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         // paint edge
-        final edge =
-            _graph.edges.firstWhere((element) => element == parentData.edge);
+        final edge = parentData.edge!;
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
@@ -309,6 +308,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       }
       context.canvas.restore();
     }
+    context.canvas.restore();
   }
 
   Node? _draggingNode;
@@ -341,10 +341,14 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   @override
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
+    assert(debugHandleEvent(event, entry));
     if (event is PointerDownEvent) {
       if (_draggingNode != null) {
         onDraggingStart(_draggingNode!.data);
         _downPosition = _draggingNode!.position;
+        for (final node in _graph.nodes) {
+          node.isFixed = false;
+        }
         _draggingNode!.isFixed = true;
       }
     } else if (event is PointerMoveEvent) {

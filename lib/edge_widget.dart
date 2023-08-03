@@ -16,12 +16,10 @@ class EdgeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
   void applyParentData(RenderObject renderObject) {
     assert(renderObject.parentData is ForceDirectedGraphParentData);
     final parentData = renderObject.parentData! as ForceDirectedGraphParentData;
-    if (parentData.edge != edge) {
-      parentData.edge = edge;
-      final ForceDirectedGraphRenderObject targetParent =
-          renderObject.parent! as ForceDirectedGraphRenderObject;
-      targetParent.markNeedsLayout();
-    }
+    parentData.edge = edge;
+    final ForceDirectedGraphRenderObject targetParent =
+        renderObject.parent! as ForceDirectedGraphRenderObject;
+    // targetParent.markNeedsLayout();
   }
 
   @override

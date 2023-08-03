@@ -13,12 +13,10 @@ class NodeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
   void applyParentData(RenderObject renderObject) {
     assert(renderObject.parentData is ForceDirectedGraphParentData);
     final parentData = renderObject.parentData! as ForceDirectedGraphParentData;
-    if (parentData.node != node) {
-      parentData.node = node;
-      final ForceDirectedGraphRenderObject targetParent =
-          renderObject.parent! as ForceDirectedGraphRenderObject;
-      targetParent.markNeedsLayout();
-    }
+    parentData.node = node;
+    final ForceDirectedGraphRenderObject targetParent =
+        renderObject.parent! as ForceDirectedGraphRenderObject;
+    // targetParent.markNeedsLayout();
   }
 
   @override
