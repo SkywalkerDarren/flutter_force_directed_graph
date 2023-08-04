@@ -10,7 +10,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  publish:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,5 +19,11 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
       - run: flutter test -v
-      - uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
-      - uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+
+  health:
+    needs: setup
+    uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+
+  publish:
+    needs: health
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
