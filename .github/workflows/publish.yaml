@@ -11,11 +11,10 @@ on:
 
 jobs:
   health:
-    needs: setup
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 
   publish:
-    needs: setup
+    needs: health
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
