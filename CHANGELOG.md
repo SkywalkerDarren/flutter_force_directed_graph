@@ -10,5 +10,6 @@
 ## 1.0.2
 
 * Add serializable
+* Add damping
 * Fix dragging bug
 * Refactor code

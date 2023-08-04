@@ -68,11 +68,13 @@ void main() {
           scaling: config.scaling,
           minVelocity: config.minVelocity,
           maxStaticFriction: config.maxStaticFriction,
+          damping: config.damping,
         );
         final canUpdateB = nodeB.updatePosition(
           scaling: config.scaling,
           minVelocity: config.minVelocity,
           maxStaticFriction: config.maxStaticFriction,
+          damping: config.damping,
         );
         if (!canUpdateA && !canUpdateB) {
           print('平衡, $nodeA, $nodeB, ${edge.distance}');
@@ -81,11 +83,13 @@ void main() {
             scaling: config.scaling,
             minVelocity: config.minVelocity,
             maxStaticFriction: config.maxStaticFriction,
+            damping: config.damping,
           );
           final b = nodeB.updatePosition(
             scaling: config.scaling,
             minVelocity: config.minVelocity,
             maxStaticFriction: config.maxStaticFriction,
+            damping: config.damping,
           );
           expect(b, false);
           expect(a, false);

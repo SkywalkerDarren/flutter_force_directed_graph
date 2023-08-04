@@ -20,13 +20,17 @@ class GraphConfig {
   /// Spring length >0
   final double length;
 
+  /// Damping 0-1
+  final double damping;
+
   const GraphConfig({
     this.maxStaticFriction = 20.0,
     this.scaling = 0.01,
     this.elasticity = 1.0,
     this.repulsion = 30.0,
     this.repulsionRange = 150.0,
-    this.minVelocity = 5,
+    this.minVelocity = 10,
     this.length = 50.0,
+    this.damping = 0.93,
   });
 }

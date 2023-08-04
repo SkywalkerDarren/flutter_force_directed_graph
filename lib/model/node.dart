@@ -32,6 +32,7 @@ class Node<T> {
     required double scaling,
     required double minVelocity,
     required double maxStaticFriction,
+    required double damping,
   }) {
     if (_isFixed) {
       _force = Vector2.zero();
@@ -52,6 +53,7 @@ class Node<T> {
     final friction = -_velocity.normalized() * maxStaticFriction;
     _force += friction;
     _velocity += _force / mass;
+    _velocity *= damping;
     position += _velocity * scaling;
     _force = Vector2.zero();
     return true;
