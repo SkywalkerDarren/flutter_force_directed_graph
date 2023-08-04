@@ -5,12 +5,13 @@ import 'edge.dart';
 class Node<T> {
   final T data;
   double mass = 1.0;
-  Vector2 position = (Vector2.random() - Vector2(0.5, 0.5)) * 200;
+  Vector2 position;
   Vector2 _force = Vector2.zero();
   Vector2 _velocity = Vector2.zero();
   bool _isFixed = false;
 
-  Node(this.data);
+  Node(this.data, [Vector2? position])
+      : position = position ?? (Vector2.random() - Vector2(0.5, 0.5)) * 200;
 
   /// Coulomb's law calculates the repulsive force
   Vector2 calculateRepulsionForce(Node other, {required double k}) {
