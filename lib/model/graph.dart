@@ -5,6 +5,7 @@ import 'package:vector_math/vector_math.dart';
 
 import 'config.dart';
 import 'edge.dart';
+import 'kd_tree.dart';
 import 'node.dart';
 
 class ForceDirectedGraph<T> {
@@ -121,21 +122,12 @@ class ForceDirectedGraph<T> {
     edges.remove(edge);
   }
 
-  void updateAllNodesByStep(int step) {
-    for (int i = 0; i < step; i++) {
-      if (!updateAllNodes()) {
-        break;
-      }
-    }
-  }
-
   bool updateAllNodes() {
+    final kdTree = KDTree.fromNode(nodes);
     for (final node in nodes) {
-      for (final other in nodes) {
+      final others = kdTree.findNeighbors(node.position, config.repulsionRange);
+      for (final other in others) {
         if (node == other) continue;
-        if (node.position.distanceTo(other.position) > config.repulsionRange) {
-          continue;
-        }
         final repulsionForce =
             node.calculateRepulsionForce(other, k: config.repulsion);
         node.applyForce(repulsionForce);

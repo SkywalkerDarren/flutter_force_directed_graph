@@ -16,12 +16,13 @@ class KDNode {
 class KDTree {
   static const dim = 2;
   KDNode? _root;
+  final bool _useVariance;
 
-  KDTree.fromNode(List<Node> nodes) {
-    _root = _buildTree(nodes.map((e) => KDNode(e)).toList());
+  KDTree.fromNode(List<Node> nodes, [bool useVariance = true])
+      : _useVariance = useVariance {
+    _root = _buildTree(nodes.map((e) => KDNode(e)).toList(), 0);
   }
 
-  /// 最大方差的维度
   int _varianceDimension(List<KDNode> nodes) {
     int maxDim = 0;
     double maxVariance = 0;
@@ -35,7 +36,6 @@ class KDTree {
     return maxDim;
   }
 
-  /// 方差
   double _variance(List<KDNode> nodes, int dim) {
     double sum = 0;
     double sum2 = 0;
@@ -49,17 +49,17 @@ class KDTree {
     return variance;
   }
 
-  KDNode? _buildTree(List<KDNode> nodes) {
+  KDNode? _buildTree(List<KDNode> nodes, int currentAxis) {
     if (nodes.isEmpty) {
       return null;
     }
-    final axis = _varianceDimension(nodes);
+    final axis = _useVariance ? _varianceDimension(nodes) : (currentAxis % dim);
     nodes.sort((a, b) => a.point[axis].compareTo(b.point[axis]));
     final median = nodes.length ~/ 2;
     final node = nodes[median]..dim = axis;
     if (nodes.length > 1) {
-      node.left = _buildTree(nodes.sublist(0, median));
-      node.right = _buildTree(nodes.sublist(median + 1));
+      node.left = _buildTree(nodes.sublist(0, median), axis + 1);
+      node.right = _buildTree(nodes.sublist(median + 1), axis + 1);
     }
     return node;
   }

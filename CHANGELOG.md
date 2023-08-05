@@ -13,3 +13,7 @@
 * Add damping
 * Fix dragging bug
 * Refactor code
+
+## 1.0.3
+
+* Add KDTree
