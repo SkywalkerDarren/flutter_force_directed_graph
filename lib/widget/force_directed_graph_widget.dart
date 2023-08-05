@@ -341,6 +341,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
       }
       child = childParentData.previousSibling;
     }
+    if (!_isDragging) {
+      _draggingNode = null;
+    }
     return false;
   }
 
