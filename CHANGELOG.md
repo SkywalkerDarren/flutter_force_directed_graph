@@ -17,3 +17,4 @@
 ## 1.0.3
 
 * Add KDTree
+* Fix dragging bug
