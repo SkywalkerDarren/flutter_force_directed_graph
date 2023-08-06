@@ -251,15 +251,35 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   @override
   void performLayout() {
-    size = constraints.biggest;
-    final children = getChildrenAsList();
-    for (final child in children) {
+    RenderBox? child = firstChild;
+    while (child != null) {
       final parentData = child.parentData! as ForceDirectedGraphParentData;
-      assert(parentData.node != null || parentData.edge != null);
-      final innerConstraints = constraints.loosen();
-      child.layout(innerConstraints, parentUsesSize: true);
+      child.layout(const BoxConstraints());
+      child = parentData.nextSibling;
     }
   }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      width.isInfinite ? 0 : width;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      height.isInfinite ? 0 : height;
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      width.isInfinite ? 0 : width;
+
+  @override
+  double computeMinIntrinsicWidth(double height) =>
+      height.isInfinite ? 0 : height;
 
   @override
   void paint(PaintingContext context, Offset offset) {
@@ -268,8 +288,8 @@ class ForceDirectedGraphRenderObject extends RenderBox
     context.canvas.translate(center.dx, center.dy);
     context.canvas.scale(_scale, _scale);
 
-    final children = getChildrenAsList();
-    for (final child in children) {
+    RenderBox? child = firstChild;
+    while (child != null) {
       context.canvas.save();
 
       final parentData = child.parentData! as ForceDirectedGraphParentData;
@@ -282,7 +302,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final finalOffset = -childCenter + moveOffset;
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
-        parentData.transform = Matrix4.identity()
+
+        parentData.transform
+          ..setIdentity()
           ..translate(center.dx, center.dy)
           ..scale(_scale, _scale)
           ..translate(-center.dx, -center.dy)
@@ -299,7 +321,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(-moveOffset.dx, -moveOffset.dy);
         context.paintChild(child, finalOffset);
         final childOffset = moveOffset + center - offset - childCenter;
-        parentData.transform = Matrix4.identity()
+
+        parentData.transform
+          ..setIdentity()
           ..translate(center.dx, center.dy)
           ..scale(_scale, _scale)
           ..translate(-center.dx, -center.dy)
@@ -311,6 +335,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         throw Exception('Unknown child');
       }
       context.canvas.restore();
+      child = parentData.nextSibling;
     }
     context.canvas.restore();
   }
@@ -401,7 +426,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
 class ForceDirectedGraphParentData extends ContainerBoxParentData<RenderBox> {
   Node? node;
   Edge? edge;
-  Matrix4? transform;
+  final Matrix4 transform = Matrix4.zero();
 
   ForceDirectedGraphParentData();
 }
