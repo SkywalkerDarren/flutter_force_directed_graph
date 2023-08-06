@@ -174,62 +174,69 @@ class _MyHomePageState extends State<MyHomePage> {
           child: const Text('add node'),
         ),
         ElevatedButton(
-          onPressed: () {
-            for (final node in _nodes) {
-              _controller.deleteNodeByData(node);
-            }
-            _nodes.clear();
-            _edges.clear();
-          },
+          onPressed: _nodes.isEmpty
+              ? null
+              : () {
+                  for (final node in _nodes) {
+                    _controller.deleteNodeByData(node);
+                  }
+                  _nodes.clear();
+                  _edges.clear();
+                },
           child: const Text('del node'),
         ),
         const SizedBox(width: 4),
         ElevatedButton(
-          onPressed: () {
-            if (_nodes.length == 2) {
-              final a = _nodes.first;
-              final b = _nodes.last;
-              _controller.addEdgeByData(a, b);
-            } else if (_nodes.length == 1) {
-              final a = _nodes.first;
-              final l = _controller.graph.nodes.length;
-              final random = Random();
-              final randomB = _controller.graph.nodes[random.nextInt(l)].data;
-              try {
-                if (a != randomB) {
-                  _controller.addEdgeByData(a, randomB);
-                }
-              } catch (e) {
-                // ignore
-              }
-            } else if (_nodes.isEmpty) {
-              final l = _controller.graph.nodes.length;
-              final random = Random();
-              final randomA = _controller.graph.nodes[random.nextInt(l)];
-              final randomB = _controller.graph.nodes[random.nextInt(l)];
-              try {
-                if (randomA != randomB) {
-                  _controller.addEdgeByNode(randomA, randomB);
-                }
-              } catch (e) {
-                // ignore
-              }
-            }
-            _nodes.clear();
-            _edges.clear();
-          },
+          onPressed: _nodes.length > 2
+              ? null
+              : () {
+                  if (_nodes.length == 2) {
+                    final a = _nodes.first;
+                    final b = _nodes.last;
+                    _controller.addEdgeByData(a, b);
+                  } else if (_nodes.length == 1) {
+                    final a = _nodes.first;
+                    final l = _controller.graph.nodes.length;
+                    final random = Random();
+                    final randomB =
+                        _controller.graph.nodes[random.nextInt(l)].data;
+                    try {
+                      if (a != randomB) {
+                        _controller.addEdgeByData(a, randomB);
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  } else if (_nodes.isEmpty) {
+                    final l = _controller.graph.nodes.length;
+                    final random = Random();
+                    final randomA = _controller.graph.nodes[random.nextInt(l)];
+                    final randomB = _controller.graph.nodes[random.nextInt(l)];
+                    try {
+                      if (randomA != randomB) {
+                        _controller.addEdgeByNode(randomA, randomB);
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  }
+                  _nodes.clear();
+                  _edges.clear();
+                },
           child: const Text('add edge'),
         ),
         ElevatedButton(
-          onPressed: () {
-            for (final edge in _edges) {
-              final a = int.parse(edge.split(' <-> ').first);
-              final b = int.parse(edge.split(' <-> ').last);
-              _controller.deleteEdgeByData(a, b);
-            }
-            _nodes.clear();
-            _edges.clear();
-          },
+          onPressed: _edges.isEmpty
+              ? null
+              : () {
+                  for (final edge in _edges) {
+                    final a = int.parse(edge.split(' <-> ').first);
+                    final b = int.parse(edge.split(' <-> ').last);
+                    _controller.deleteEdgeByData(a, b);
+                  }
+                  _nodes.clear();
+                  _edges.clear();
+                },
           child: const Text('del edge'),
         ),
         ElevatedButton(
