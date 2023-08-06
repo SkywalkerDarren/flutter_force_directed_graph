@@ -18,3 +18,4 @@
 
 * Add KDTree
 * Fix dragging bug
+* Fix node and edge widget constraint
