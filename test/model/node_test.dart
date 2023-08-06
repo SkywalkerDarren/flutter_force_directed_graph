@@ -4,7 +4,16 @@ import 'package:vector_math/vector_math.dart';
 
 void main() {
   group('Node', () {
-    const config = GraphConfig();
+    const config = GraphConfig(
+      maxStaticFriction: 20.0,
+      scaling: 0.01,
+      elasticity: 1.0,
+      repulsion: 30.0,
+      repulsionRange: 150.0,
+      minVelocity: 10,
+      length: 50.0,
+      damping: 0.93,
+    );
 
     test('should calculate repulsive force between two nodes', () {
       final node1 = Node(1);

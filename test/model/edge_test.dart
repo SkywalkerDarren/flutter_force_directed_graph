@@ -43,7 +43,16 @@ void main() {
     });
 
     test('Balance test', () {
-      const config = GraphConfig();
+      const config = GraphConfig(
+        maxStaticFriction: 20.0,
+        scaling: 0.01,
+        elasticity: 1.0,
+        repulsion: 30.0,
+        repulsionRange: 150.0,
+        minVelocity: 10,
+        length: 50.0,
+        damping: 0.93,
+      );
 
       for (int i = 0; i < 100; i++) {
         final f1 = nodeA.calculateRepulsionForce(nodeB, k: config.repulsion);

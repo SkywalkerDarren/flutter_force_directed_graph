@@ -23,7 +23,7 @@ Add the following in your `pubspec.yaml` file under `dependencies`:
 
 ```yaml
 dependencies:
-  flutter_force_directed_graph: ^1.0.1
+  flutter_force_directed_graph: ^1.0.3
 ```
 
 Then install it by running `flutter pub get` in your terminal.
