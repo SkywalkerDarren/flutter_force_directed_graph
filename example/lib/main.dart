@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
 
 void main() {
@@ -162,138 +161,137 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildMenu(BuildContext context) {
     return Wrap(
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                _nodeCount++;
-                _controller.addNode(_nodeCount);
-                _nodes.clear();
-                _edges.clear();
-              },
-              child: const Text('add node'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                for (final node in _nodes) {
-                  _controller.deleteNodeByData(node);
-                }
-                _nodes.clear();
-                _edges.clear();
-              },
-              child: const Text('del node'),
-            ),
-            const SizedBox(width: 4),
-            ElevatedButton(
-              onPressed: () {
-                if (_nodes.length == 2) {
-                  final a = _nodes.first;
-                  final b = _nodes.last;
-                  _controller.addEdgeByData(a, b);
-                }
-                _nodes.clear();
-                _edges.clear();
-              },
-              child: const Text('add edge'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                for (final edge in _edges) {
-                  final a = int.parse(edge.split(' <-> ').first);
-                  final b = int.parse(edge.split(' <-> ').last);
-                  _controller.deleteEdgeByData(a, b);
-                }
-                _nodes.clear();
-                _edges.clear();
-              },
-              child: const Text('del edge'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _controller.needUpdate();
-              },
-              child: const Text('update'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final result = await _showTreeDialogWithInput(context);
-                if (result == null) return;
-                setState(() {
-                  _clearData();
-                  _controller.graph = ForceDirectedGraph.generateNTree(
-                    nodeCount: result['nodeCount'] as int,
-                    maxDepth: result['maxDepth'] as int,
-                    n: result['n'] as int,
-                    generator: () {
-                      _nodeCount++;
-                      return _nodeCount;
-                    },
-                  );
-                });
-              },
-              child: const Text('new tree'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final result = await _showNodeDialogWithInput(context);
-                if (result == null) return;
-                setState(() {
-                  _clearData();
-                  _controller.graph = ForceDirectedGraph.generateNNodes(
-                    nodeCount: result['nodeCount'] as int,
-                    generator: () {
-                      _nodeCount++;
-                      return _nodeCount;
-                    },
-                  );
-                });
-              },
-              child: const Text('new nodes'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _controller.center();
-              },
-              child: const Text('center'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _locatedTo++;
-                  _locatedTo = _locatedTo % _controller.graph.nodes.length;
-                  final data = _controller.graph.nodes[_locatedTo].data;
-                  _controller.locateTo(data);
-                });
-              },
-              child: Text(
-                  'locateTo ${_controller.graph.nodes[_locatedTo].data}'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  if (_json != null) {
-                    _controller.graph = ForceDirectedGraph.fromJson(_json!);
-                    _clearData();
-                    _json = null;
-                  } else {
-                    _json = _controller.toJson();
-                  }
-                });
-              },
-              child: Text(_json == null ? 'save' : 'load'),
-            ),
-            Slider(
-              value: _scale,
-              min: 0.1,
-              max: 2.0,
-              onChanged: (value) {
-                setState(() {
-                  _scale = value;
-                  _controller.scale = value;
-                });
-              },
-            )
-          ],
-        );
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            _nodeCount++;
+            _controller.addNode(_nodeCount);
+            _nodes.clear();
+            _edges.clear();
+          },
+          child: const Text('add node'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            for (final node in _nodes) {
+              _controller.deleteNodeByData(node);
+            }
+            _nodes.clear();
+            _edges.clear();
+          },
+          child: const Text('del node'),
+        ),
+        const SizedBox(width: 4),
+        ElevatedButton(
+          onPressed: () {
+            if (_nodes.length == 2) {
+              final a = _nodes.first;
+              final b = _nodes.last;
+              _controller.addEdgeByData(a, b);
+            }
+            _nodes.clear();
+            _edges.clear();
+          },
+          child: const Text('add edge'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            for (final edge in _edges) {
+              final a = int.parse(edge.split(' <-> ').first);
+              final b = int.parse(edge.split(' <-> ').last);
+              _controller.deleteEdgeByData(a, b);
+            }
+            _nodes.clear();
+            _edges.clear();
+          },
+          child: const Text('del edge'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            _controller.needUpdate();
+          },
+          child: const Text('update'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            final result = await _showTreeDialogWithInput(context);
+            if (result == null) return;
+            setState(() {
+              _clearData();
+              _controller.graph = ForceDirectedGraph.generateNTree(
+                nodeCount: result['nodeCount'] as int,
+                maxDepth: result['maxDepth'] as int,
+                n: result['n'] as int,
+                generator: () {
+                  _nodeCount++;
+                  return _nodeCount;
+                },
+              );
+            });
+          },
+          child: const Text('new tree'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            final result = await _showNodeDialogWithInput(context);
+            if (result == null) return;
+            setState(() {
+              _clearData();
+              _controller.graph = ForceDirectedGraph.generateNNodes(
+                nodeCount: result['nodeCount'] as int,
+                generator: () {
+                  _nodeCount++;
+                  return _nodeCount;
+                },
+              );
+            });
+          },
+          child: const Text('new nodes'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            _controller.center();
+          },
+          child: const Text('center'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _locatedTo++;
+              _locatedTo = _locatedTo % _controller.graph.nodes.length;
+              final data = _controller.graph.nodes[_locatedTo].data;
+              _controller.locateTo(data);
+            });
+          },
+          child: Text('locateTo ${_controller.graph.nodes[_locatedTo].data}'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              if (_json != null) {
+                _controller.graph = ForceDirectedGraph.fromJson(_json!);
+                _clearData();
+                _json = null;
+              } else {
+                _json = _controller.toJson();
+              }
+            });
+          },
+          child: Text(_json == null ? 'save' : 'load'),
+        ),
+        Slider(
+          value: _scale,
+          min: 0.1,
+          max: 2.0,
+          onChanged: (value) {
+            setState(() {
+              _scale = value;
+              _controller.scale = value;
+            });
+          },
+        )
+      ],
+    );
   }
 
   void _clearData() {
@@ -329,10 +327,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 decoration: const InputDecoration(labelText: "Max Depth"),
               ),
               TextField(
-                controller: nController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: "Max Children")
-              )
+                  controller: nController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Max Children"))
             ],
           ),
           actions: <Widget>[
@@ -365,7 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<Map<String, int>?> _showNodeDialogWithInput(BuildContext context) {
     final TextEditingController nodeCountController =
-    TextEditingController(text: '50');
+        TextEditingController(text: '50');
 
     return showDialog<Map<String, int>>(
       context: context,
