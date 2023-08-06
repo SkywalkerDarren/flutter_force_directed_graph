@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugCheckIntrinsicSizes = true;
     return MaterialApp(
       title: 'Force Directed Graph Demo',
       theme: ThemeData(
