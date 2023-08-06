@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_force_directed_graph/flutter_force_directed_graph.dart';
 
@@ -188,6 +190,30 @@ class _MyHomePageState extends State<MyHomePage> {
               final a = _nodes.first;
               final b = _nodes.last;
               _controller.addEdgeByData(a, b);
+            } else if (_nodes.length == 1) {
+              final a = _nodes.first;
+              final l = _controller.graph.nodes.length;
+              final random = Random();
+              final randomB = _controller.graph.nodes[random.nextInt(l)].data;
+              try {
+                if (a != randomB) {
+                  _controller.addEdgeByData(a, randomB);
+                }
+              } catch (e) {
+                // ignore
+              }
+            } else if (_nodes.isEmpty) {
+              final l = _controller.graph.nodes.length;
+              final random = Random();
+              final randomA = _controller.graph.nodes[random.nextInt(l)];
+              final randomB = _controller.graph.nodes[random.nextInt(l)];
+              try {
+                if (randomA != randomB) {
+                  _controller.addEdgeByNode(randomA, randomB);
+                }
+              } catch (e) {
+                // ignore
+              }
             }
             _nodes.clear();
             _edges.clear();
