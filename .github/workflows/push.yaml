@@ -1,0 +1,27 @@
+name: Publish to pub.dev
+
+permissions:
+  pull-requests: write
+  id-token: write
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  health:
+    uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+
+  publish:
+    needs: health
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2.10.0
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter test -v
+      - run: flutter pub publish --dry-run
