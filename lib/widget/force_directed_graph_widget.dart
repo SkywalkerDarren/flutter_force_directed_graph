@@ -390,7 +390,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
         _draggingNode!.static();
       }
     } else if (event is PointerMoveEvent) {
-      if (_draggingNode != null) {
+      if (_draggingNode != null && _isDragging) {
         // move node
         onDraggingUpdate(_draggingNode!.data);
         _downPosition = _downPosition! +

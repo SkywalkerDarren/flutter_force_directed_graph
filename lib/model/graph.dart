@@ -34,6 +34,22 @@ class ForceDirectedGraph<T> {
     _createNTree(root, nodeCount - 1, maxDepth - 1, n, random, generator);
   }
 
+  /// Generate a graph with n nodes, no edges.
+  /// [nodeCount] is the node count.
+  /// [generator] is the generator of the node data. Make sure the data is unique.
+  ForceDirectedGraph.generateNNodes({
+    required int nodeCount,
+    required T Function() generator,
+    this.config = const GraphConfig(),
+  }) {
+    for (int i = 0; i < nodeCount; i++) {
+      final node = Node(generator());
+      nodes.add(node);
+    }
+  }
+
+  /// Create a graph from json.
+  /// [resetPosition] will reset the position of the nodes.
   ForceDirectedGraph.fromJson(
     String json, {
     bool resetPosition = false,

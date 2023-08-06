@@ -17,5 +17,6 @@
 ## 1.0.3
 
 * Add KDTree
+* Add pure nodes constructor
 * Fix dragging bug
 * Fix node and edge widget constraint
