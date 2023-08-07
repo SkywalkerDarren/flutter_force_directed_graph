@@ -338,16 +338,19 @@ class ForceDirectedGraphRenderObject extends RenderBox
         if ((moveOffset.dx).abs() < paintLimitX &&
             (moveOffset.dy).abs() < paintLimitY) {
           context.paintChild(child, finalOffset);
+
+          final childOffset = moveOffset + center - offset - childCenter;
+
+          parentData.transform
+            ..setIdentity()
+            ..translate(center.dx, center.dy)
+            ..scale(_scale, _scale)
+            ..translate(-center.dx, -center.dy)
+            ..translate(childOffset.dx, childOffset.dy);
+          parentData.canHit = true;
+        } else {
+          parentData.canHit = false;
         }
-
-        final childOffset = moveOffset + center - offset - childCenter;
-
-        parentData.transform
-          ..setIdentity()
-          ..translate(center.dx, center.dy)
-          ..scale(_scale, _scale)
-          ..translate(-center.dx, -center.dy)
-          ..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         // paint edge
         final edge = parentData.edge!;
@@ -378,19 +381,22 @@ class ForceDirectedGraphRenderObject extends RenderBox
             ..rotate(edge.angle)
             ..translate(-moveOffset.dx, -moveOffset.dy);
           context.paintChild(child, finalOffset);
+
+          final childOffset = moveOffset + center - offset - childCenter;
+
+          parentData.transform
+            ..setIdentity()
+            ..translate(center.dx, center.dy)
+            ..scale(_scale, _scale)
+            ..translate(-center.dx, -center.dy)
+            ..translate(childOffset.dx + childCenter.dx,
+                childOffset.dy + childCenter.dy)
+            ..rotateZ(edge.angle)
+            ..translate(-childCenter.dx, -childCenter.dy);
+          parentData.canHit = true;
+        } else {
+          parentData.canHit = false;
         }
-
-        final childOffset = moveOffset + center - offset - childCenter;
-
-        parentData.transform
-          ..setIdentity()
-          ..translate(center.dx, center.dy)
-          ..scale(_scale, _scale)
-          ..translate(-center.dx, -center.dy)
-          ..translate(
-              childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
-          ..rotateZ(edge.angle)
-          ..translate(-childCenter.dx, -childCenter.dy);
       } else {
         throw Exception('Unknown child');
       }
@@ -409,13 +415,14 @@ class ForceDirectedGraphRenderObject extends RenderBox
     var child = lastChild;
     while (child != null) {
       final childParentData = child.parentData! as ForceDirectedGraphParentData;
-      final bool isHit = result.addWithPaintTransform(
-        transform: childParentData.transform,
-        position: position,
-        hitTest: (BoxHitTestResult result, Offset transformed) {
-          return child!.hitTest(result, position: transformed);
-        },
-      );
+      final bool isHit = childParentData.canHit &&
+          result.addWithPaintTransform(
+            transform: childParentData.transform,
+            position: position,
+            hitTest: (BoxHitTestResult result, Offset transformed) {
+              return child!.hitTest(result, position: transformed);
+            },
+          );
       if (isHit) {
         if (childParentData.node != null) {
           if (!_isDragging) {
@@ -487,6 +494,7 @@ class ForceDirectedGraphParentData extends ContainerBoxParentData<RenderBox> {
   Node? node;
   Edge? edge;
   final Matrix4 transform = Matrix4.zero();
+  bool canHit = false;
 
   ForceDirectedGraphParentData();
 }
