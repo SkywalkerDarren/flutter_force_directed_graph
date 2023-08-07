@@ -24,7 +24,7 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   ForceDirectedGraphController({ForceDirectedGraph<T>? graph})
       : _graph = graph ?? ForceDirectedGraph();
 
-  final double minScale = 0.5;
+  final double minScale = 0.1;
   final double maxScale = 2.0;
 
   double _scale = 1.0;
@@ -32,7 +32,14 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   /// Scale of the graph. Clamped between [minScale] and [maxScale].
   set scale(double scale) {
     _scale = scale.clamp(minScale, maxScale);
+    _onScaleChange?.call(_scale);
     notifyListeners();
+  }
+
+  Function(double scale)? _onScaleChange;
+
+  void setOnScaleChange(Function(double scale) onScaleChange) {
+    _onScaleChange = onScaleChange;
   }
 
   /// Scale of the graph. Clamped between [minScale] and [maxScale].

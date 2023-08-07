@@ -20,3 +20,7 @@
 * Add pure nodes constructor
 * Fix dragging bug
 * Fix node and edge widget constraint
+
+# 1.0.4
+
+* Add scale change callback

@@ -45,7 +45,12 @@ class _MyHomePageState extends State<MyHomePage> {
         return _nodeCount;
       },
     ),
-  );
+  )..setOnScaleChange((scale) {
+          if (!mounted) return;
+          setState(() {
+            _scale = scale;
+          });
+        });
   int _nodeCount = 0;
   final Set<int> _nodes = {};
   final Set<String> _edges = {};
@@ -120,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: Text('$data'),
+                    child: _scale > 0.5 ? Text('$data') : null,
                   ),
                 );
               },
@@ -150,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 16,
                     color: color,
                     alignment: Alignment.center,
-                    child: Text('$a <-> $b'),
+                    child: _scale > 0.5 ? Text('$a <-> $b') : null,
                   ),
                 );
               },
@@ -314,13 +319,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Slider(
           value: _scale,
-          min: 0.1,
-          max: 2.0,
+          min: _controller.minScale,
+          max: _controller.maxScale,
           onChanged: (value) {
-            setState(() {
-              _scale = value;
-              _controller.scale = value;
-            });
+            _controller.scale = value;
           },
         )
       ],
