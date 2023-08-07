@@ -317,6 +317,12 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           child: Text(_json == null ? 'save' : 'load'),
         ),
+        ElevatedButton(
+          onPressed: () {
+            _controller.scale = 1;
+          },
+          child: const Text('reset'),
+        ),
         Slider(
           value: _scale,
           min: _controller.minScale,
@@ -324,7 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
           onChanged: (value) {
             _controller.scale = value;
           },
-        )
+        ),
       ],
     );
   }

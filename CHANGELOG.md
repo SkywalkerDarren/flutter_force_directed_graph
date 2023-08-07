@@ -24,3 +24,4 @@
 # 1.0.4
 
 * Add scale change callback
+* Optimize performance

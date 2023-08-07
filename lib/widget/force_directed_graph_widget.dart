@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -28,6 +30,7 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
   const ForceDirectedGraphWidget({
     super.key,
     required this.controller,
+    this.cachePaintOffset = 0,
     required this.nodesBuilder,
     required this.edgesBuilder,
     this.onDraggingStart,
@@ -37,6 +40,11 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
 
   /// The controller of the graph.
   final ForceDirectedGraphController<T> controller;
+
+  /// Used to optimize drawing performance.
+  /// When the center of the node is out of the screen by more than this offset,
+  /// the drawing will stop.
+  final double cachePaintOffset;
 
   /// The builder of the nodes.
   final NodeBuilder<T> nodesBuilder;
@@ -148,6 +156,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
         child: ClipRect(
           child: ForceDirectedGraphBody(
             controller: _controller,
+            cachePaintOffset: widget.cachePaintOffset,
             graph: _controller.graph,
             scale: _controller.scale,
             nodes: nodes,
@@ -172,6 +181,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   final ForceDirectedGraph graph;
   final ForceDirectedGraphController controller;
   final double scale;
+  final double cachePaintOffset;
   final void Function(dynamic data) onDraggingStart;
   final void Function(dynamic data) onDraggingEnd;
   final void Function(dynamic data) onDraggingUpdate;
@@ -186,12 +196,15 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
     required this.onDraggingUpdate,
     required this.onDraggingStart,
     required this.onDraggingEnd,
+    required this.cachePaintOffset,
   }) : super(key: key, children: [...edges, ...nodes]);
 
   @override
   ForceDirectedGraphRenderObject createRenderObject(BuildContext context) {
     return ForceDirectedGraphRenderObject(
         graph: graph,
+        scale: scale,
+        cachePaintOffset: cachePaintOffset,
         controller: controller,
         onDraggingUpdate: onDraggingUpdate,
         onDraggingStart: onDraggingStart,
@@ -203,6 +216,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
       BuildContext context, ForceDirectedGraphRenderObject renderObject) {
     renderObject
       ..graph = graph
+      .._cachePaintOffset = cachePaintOffset
       .._scale = scale;
   }
 }
@@ -212,13 +226,17 @@ class ForceDirectedGraphRenderObject extends RenderBox
         ContainerRenderObjectMixin<RenderBox, ForceDirectedGraphParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox,
             ForceDirectedGraphParentData> {
-  ForceDirectedGraphRenderObject(
-      {required ForceDirectedGraph graph,
-      required this.controller,
-      required this.onDraggingUpdate,
-      required this.onDraggingStart,
-      required this.onDraggingEnd})
-      : _graph = graph;
+  ForceDirectedGraphRenderObject({
+    required ForceDirectedGraph graph,
+    required double cachePaintOffset,
+    required double scale,
+    required this.controller,
+    required this.onDraggingUpdate,
+    required this.onDraggingStart,
+    required this.onDraggingEnd,
+  })  : _graph = graph,
+        _cachePaintOffset = cachePaintOffset,
+        _scale = scale;
 
   final ForceDirectedGraphController controller;
 
@@ -233,12 +251,21 @@ class ForceDirectedGraphRenderObject extends RenderBox
     markNeedsPaint();
   }
 
-  double _scale = 1;
+  double _scale;
 
   set scale(double value) {
     _scale = value;
     markNeedsPaint();
   }
+
+  double _cachePaintOffset;
+
+  set cachePaintOffset(double value) {
+    _cachePaintOffset = value;
+    markNeedsPaint();
+  }
+
+  double get cachePaintOffset => _cachePaintOffset;
 
   // layout and paint logic ==============================================================
 
@@ -287,6 +314,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
     context.canvas.save();
     context.canvas.translate(center.dx, center.dy);
     context.canvas.scale(_scale, _scale);
+    final canPaintBound = Rect.fromLTRB(
+        (-size.width / 2 - cachePaintOffset) / _scale,
+        (-size.height / 2 - cachePaintOffset) / _scale,
+        (size.width / 2 + cachePaintOffset) / _scale,
+        (size.height / 2 + cachePaintOffset) / _scale);
 
     RenderBox? child = firstChild;
     while (child != null) {
@@ -300,7 +332,14 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final node = parentData.node!;
         final moveOffset = Offset(node.position.x, -node.position.y);
         final finalOffset = -childCenter + moveOffset;
-        context.paintChild(child, finalOffset);
+
+        final paintLimitX = (canPaintBound.width + child.size.width) / 2;
+        final paintLimitY = (canPaintBound.height + child.size.height) / 2;
+        if ((moveOffset.dx).abs() < paintLimitX &&
+            (moveOffset.dy).abs() < paintLimitY) {
+          context.paintChild(child, finalOffset);
+        }
+
         final childOffset = moveOffset + center - offset - childCenter;
 
         parentData.transform
@@ -315,11 +354,32 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final edgeCenter = (edge.a.position + edge.b.position) / 2;
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
-        context.canvas
-          ..translate(moveOffset.dx, moveOffset.dy)
-          ..rotate(edge.angle)
-          ..translate(-moveOffset.dx, -moveOffset.dy);
-        context.paintChild(child, finalOffset);
+
+        final newCenter =
+            child.paintBounds.translate(-childCenter.dx, -childCenter.dy);
+        final point = [
+          newCenter.topLeft,
+          newCenter.topRight,
+        ].map((point) {
+          double x =
+              point.dx * cos(edge.rawAngle) - point.dy * sin(edge.rawAngle);
+          double y =
+              point.dx * sin(edge.rawAngle) + point.dy * cos(edge.rawAngle);
+          final o = Offset(x.abs(), y.abs());
+          return o;
+        }).reduce((a, b) => Offset(max(a.dx, b.dx), max(a.dy, b.dy)));
+
+        final paintLimitX = canPaintBound.width / 2 + point.dx;
+        final paintLimitY = canPaintBound.height / 2 + point.dy;
+        if (moveOffset.dx.abs() < paintLimitX &&
+            moveOffset.dy.abs() < paintLimitY) {
+          context.canvas
+            ..translate(moveOffset.dx, moveOffset.dy)
+            ..rotate(edge.angle)
+            ..translate(-moveOffset.dx, -moveOffset.dy);
+          context.paintChild(child, finalOffset);
+        }
+
         final childOffset = moveOffset + center - offset - childCenter;
 
         parentData.transform

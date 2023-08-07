@@ -21,6 +21,10 @@ class Edge {
     }
   }
 
+  double get rawAngle {
+    return (a.position - b.position).angleToSigned(Vector2(1, 0));
+  }
+
   /// Hooke's law calculates the elastic force
   double calculateAttractionForce({required double k, required double length}) {
     final distance = this.distance;
