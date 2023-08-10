@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -431,24 +429,16 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final moveOffset = Offset(node.position.x, -node.position.y);
         final finalOffset = -childCenter + moveOffset;
 
-        final paintLimitX = (canPaintBound.width + child.size.width) / 2;
-        final paintLimitY = (canPaintBound.height + child.size.height) / 2;
-        if ((moveOffset.dx).abs() < paintLimitX &&
-            (moveOffset.dy).abs() < paintLimitY) {
-          context.paintChild(child, finalOffset);
+        context.paintChild(child, finalOffset);
 
-          final childOffset = moveOffset + center - offset - childCenter;
+        final childOffset = moveOffset + center - offset - childCenter;
 
-          parentData.transform
-            ..setIdentity()
-            ..translate(center.dx, center.dy)
-            ..scale(_scale, _scale)
-            ..translate(-center.dx, -center.dy)
-            ..translate(childOffset.dx, childOffset.dy);
-          parentData.canHit = true;
-        } else {
-          parentData.canHit = false;
-        }
+        parentData.transform
+          ..setIdentity()
+          ..translate(center.dx, center.dy)
+          ..scale(_scale, _scale)
+          ..translate(-center.dx, -center.dy)
+          ..translate(childOffset.dx, childOffset.dy);
       } else if (parentData.edge != null) {
         // paint edge
         final edge = parentData.edge!;
@@ -456,45 +446,23 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
 
-        final newCenter =
-            child.paintBounds.translate(-childCenter.dx, -childCenter.dy);
-        final point = [
-          newCenter.topLeft,
-          newCenter.topRight,
-        ].map((point) {
-          double x =
-              point.dx * cos(edge.rawAngle) - point.dy * sin(edge.rawAngle);
-          double y =
-              point.dx * sin(edge.rawAngle) + point.dy * cos(edge.rawAngle);
-          final o = Offset(x.abs(), y.abs());
-          return o;
-        }).reduce((a, b) => Offset(max(a.dx, b.dx), max(a.dy, b.dy)));
+        context.canvas
+          ..translate(moveOffset.dx, moveOffset.dy)
+          ..rotate(edge.angle)
+          ..translate(-moveOffset.dx, -moveOffset.dy);
+        context.paintChild(child, finalOffset);
 
-        final paintLimitX = canPaintBound.width / 2 + point.dx;
-        final paintLimitY = canPaintBound.height / 2 + point.dy;
-        if (moveOffset.dx.abs() < paintLimitX &&
-            moveOffset.dy.abs() < paintLimitY) {
-          context.canvas
-            ..translate(moveOffset.dx, moveOffset.dy)
-            ..rotate(edge.angle)
-            ..translate(-moveOffset.dx, -moveOffset.dy);
-          context.paintChild(child, finalOffset);
+        final childOffset = moveOffset + center - offset - childCenter;
 
-          final childOffset = moveOffset + center - offset - childCenter;
-
-          parentData.transform
-            ..setIdentity()
-            ..translate(center.dx, center.dy)
-            ..scale(_scale, _scale)
-            ..translate(-center.dx, -center.dy)
-            ..translate(childOffset.dx + childCenter.dx,
-                childOffset.dy + childCenter.dy)
-            ..rotateZ(edge.angle)
-            ..translate(-childCenter.dx, -childCenter.dy);
-          parentData.canHit = true;
-        } else {
-          parentData.canHit = false;
-        }
+        parentData.transform
+          ..setIdentity()
+          ..translate(center.dx, center.dy)
+          ..scale(_scale, _scale)
+          ..translate(-center.dx, -center.dy)
+          ..translate(
+              childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
+          ..rotateZ(edge.angle)
+          ..translate(-childCenter.dx, -childCenter.dy);
       } else {
         throw Exception('Unknown child');
       }
@@ -513,14 +481,13 @@ class ForceDirectedGraphRenderObject extends RenderBox
     var child = lastChild;
     while (child != null) {
       final childParentData = child.parentData! as ForceDirectedGraphParentData;
-      final bool isHit = childParentData.canHit &&
-          result.addWithPaintTransform(
-            transform: childParentData.transform,
-            position: position,
-            hitTest: (BoxHitTestResult result, Offset transformed) {
-              return child!.hitTest(result, position: transformed);
-            },
-          );
+      final bool isHit = result.addWithPaintTransform(
+        transform: childParentData.transform,
+        position: position,
+        hitTest: (BoxHitTestResult result, Offset transformed) {
+          return child!.hitTest(result, position: transformed);
+        },
+      );
       if (isHit) {
         if (childParentData.node != null) {
           if (!_isDragging) {
@@ -598,7 +565,6 @@ class ForceDirectedGraphParentData extends ContainerBoxParentData<RenderBox> {
   Node? node;
   Edge? edge;
   final Matrix4 transform = Matrix4.zero();
-  bool canHit = false;
 
   ForceDirectedGraphParentData();
 }
