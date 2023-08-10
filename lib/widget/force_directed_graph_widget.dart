@@ -30,7 +30,7 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
   const ForceDirectedGraphWidget({
     super.key,
     required this.controller,
-    this.cachePaintOffset = 0,
+    this.cachePaintOffset = 50,
     required this.nodesBuilder,
     required this.edgesBuilder,
     this.onDraggingStart,
@@ -71,6 +71,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   ForceDirectedGraphController<T> get _controller => widget.controller;
   late Ticker _ticker;
   double _scale = 1.0;
+  Rect? paintBound;
 
   @override
   void initState() {
@@ -112,9 +113,58 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     super.didUpdateWidget(oldWidget);
   }
 
+  bool isLineIntersectsRect(Offset p1, Offset p2, Rect rect) {
+    // Rect four corners
+    Offset topLeft = rect.topLeft;
+    Offset topRight = rect.topRight;
+    Offset bottomLeft = rect.bottomLeft;
+    Offset bottomRight = rect.bottomRight;
+
+    // Check if the line segment intersects any of the sides of the Rect
+    return isLineIntersect(p1, p2, topLeft, topRight) ||
+        isLineIntersect(p1, p2, topLeft, bottomLeft) ||
+        isLineIntersect(p1, p2, topRight, bottomRight) ||
+        isLineIntersect(p1, p2, bottomLeft, bottomRight);
+  }
+
+  bool isLineIntersect(Offset p1, Offset p2, Offset q1, Offset q2) {
+    double cross1 = crossProduct(p1, p2, q1);
+    double cross2 = crossProduct(p1, p2, q2);
+    double cross3 = crossProduct(q1, q2, p1);
+    double cross4 = crossProduct(q1, q2, p2);
+
+    // If the two cross products have different signs,
+    // then the line segments are on opposite sides of the rectangle,
+    // so they must intersect.
+    return (cross1 * cross2 < 0) && (cross3 * cross4 < 0);
+  }
+
+  double crossProduct(Offset a, Offset b, Offset c) {
+    // Calculate the cross product of vectors AB and AC
+    double y1 = b.dy - a.dy;
+    double x1 = b.dx - a.dx;
+    double y2 = c.dy - a.dy;
+    double x2 = c.dx - a.dx;
+
+    return (x1 * y2) - (x2 * y1);
+  }
+
+  bool inRect(Offset offset, Rect rect) {
+    return offset.dx >= rect.left &&
+        offset.dx <= rect.right &&
+        offset.dy >= rect.top &&
+        offset.dy <= rect.bottom;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final nodes = _controller.graph.nodes.map((e) {
+    final nodes = _controller.graph.nodes.where((element) {
+      if (paintBound == null) {
+        return true;
+      }
+      final offset = Offset(element.position.x, element.position.y);
+      return inRect(offset, paintBound!);
+    }).map((e) {
       final child = widget.nodesBuilder(context, e.data);
       if (child is NodeWidget) {
         assert(child.node == e);
@@ -126,7 +176,16 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       );
     });
 
-    final edges = _controller.graph.edges.map((e) {
+    final edges = _controller.graph.edges.where((element) {
+      if (paintBound == null) {
+        return true;
+      }
+      final a = Offset(element.a.position.x, element.a.position.y);
+      final b = Offset(element.b.position.x, element.b.position.y);
+      return inRect(a, paintBound!) ||
+          inRect(b, paintBound!) ||
+          isLineIntersectsRect(a, b, paintBound!);
+    }).map((e) {
       final child =
           widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
       if (child is EdgeWidget) {
@@ -152,24 +211,30 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
             .clamp(_controller.minScale, _controller.maxScale);
         _controller.scale = scale;
       },
-      child: RepaintBoundary(
-        child: ClipRect(
-          child: ForceDirectedGraphBody(
-            controller: _controller,
-            cachePaintOffset: widget.cachePaintOffset,
-            graph: _controller.graph,
-            scale: _controller.scale,
-            nodes: nodes,
-            edges: edges,
-            onDraggingStart: (data) {
-              widget.onDraggingStart?.call(data);
-            },
-            onDraggingEnd: (data) {
-              widget.onDraggingEnd?.call(data);
-            },
-            onDraggingUpdate: (data) {
-              widget.onDraggingUpdate?.call(data);
-            },
+      child: NotificationListener<PaintBoundChangeNotification>(
+        onNotification: (notification) {
+          paintBound = notification.paintBound;
+          return true;
+        },
+        child: RepaintBoundary(
+          child: ClipRect(
+            child: ForceDirectedGraphBody(
+              controller: _controller,
+              cachePaintOffset: widget.cachePaintOffset,
+              graph: _controller.graph,
+              scale: _controller.scale,
+              nodes: nodes,
+              edges: edges,
+              onDraggingStart: (data) {
+                widget.onDraggingStart?.call(data);
+              },
+              onDraggingEnd: (data) {
+                widget.onDraggingEnd?.call(data);
+              },
+              onDraggingUpdate: (data) {
+                widget.onDraggingUpdate?.call(data);
+              },
+            ),
           ),
         ),
       ),
@@ -202,13 +267,17 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   @override
   ForceDirectedGraphRenderObject createRenderObject(BuildContext context) {
     return ForceDirectedGraphRenderObject(
-        graph: graph,
-        scale: scale,
-        cachePaintOffset: cachePaintOffset,
-        controller: controller,
-        onDraggingUpdate: onDraggingUpdate,
-        onDraggingStart: onDraggingStart,
-        onDraggingEnd: onDraggingEnd);
+      graph: graph,
+      scale: scale,
+      cachePaintOffset: cachePaintOffset,
+      controller: controller,
+      onDraggingUpdate: onDraggingUpdate,
+      onDraggingStart: onDraggingStart,
+      onDraggingEnd: onDraggingEnd,
+      onPaintBoundChange: (Rect rect) {
+        PaintBoundChangeNotification(rect).dispatch(context);
+      },
+    );
   }
 
   @override
@@ -216,8 +285,8 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
       BuildContext context, ForceDirectedGraphRenderObject renderObject) {
     renderObject
       ..graph = graph
-      .._cachePaintOffset = cachePaintOffset
-      .._scale = scale;
+      ..cachePaintOffset = cachePaintOffset
+      ..scale = scale;
   }
 }
 
@@ -234,6 +303,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
     required this.onDraggingUpdate,
     required this.onDraggingStart,
     required this.onDraggingEnd,
+    required this.onPaintBoundChange,
   })  : _graph = graph,
         _cachePaintOffset = cachePaintOffset,
         _scale = scale;
@@ -243,6 +313,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
   final void Function(dynamic data) onDraggingStart;
   final void Function(dynamic data) onDraggingUpdate;
   final void Function(dynamic data) onDraggingEnd;
+  final void Function(Rect bound) onPaintBoundChange;
 
   ForceDirectedGraph _graph;
 
@@ -251,10 +322,27 @@ class ForceDirectedGraphRenderObject extends RenderBox
     markNeedsPaint();
   }
 
+  Rect _canPaintBound = Rect.zero;
+
+  set canPaintBound(Rect value) {
+    if (value == _canPaintBound) {
+      return;
+    }
+    _canPaintBound = value;
+    onPaintBoundChange(value);
+  }
+
+  Rect get canPaintBound => _canPaintBound;
+
   double _scale;
 
   set scale(double value) {
     _scale = value;
+    canPaintBound = Rect.fromLTRB(
+        (-size.width / 2 - cachePaintOffset) / _scale,
+        (-size.height / 2 - cachePaintOffset) / _scale,
+        (size.width / 2 + cachePaintOffset) / _scale,
+        (size.height / 2 + cachePaintOffset) / _scale);
     markNeedsPaint();
   }
 
@@ -262,6 +350,11 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   set cachePaintOffset(double value) {
     _cachePaintOffset = value;
+    canPaintBound = Rect.fromLTRB(
+        (-size.width / 2 - cachePaintOffset) / _scale,
+        (-size.height / 2 - cachePaintOffset) / _scale,
+        (size.width / 2 + cachePaintOffset) / _scale,
+        (size.height / 2 + cachePaintOffset) / _scale);
     markNeedsPaint();
   }
 
@@ -284,6 +377,16 @@ class ForceDirectedGraphRenderObject extends RenderBox
       child.layout(const BoxConstraints());
       child = parentData.nextSibling;
     }
+  }
+
+  @override
+  void performResize() {
+    super.performResize();
+    canPaintBound = Rect.fromLTRB(
+        (-size.width / 2 - cachePaintOffset) / _scale,
+        (-size.height / 2 - cachePaintOffset) / _scale,
+        (size.width / 2 + cachePaintOffset) / _scale,
+        (size.height / 2 + cachePaintOffset) / _scale);
   }
 
   @override
@@ -314,11 +417,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
     context.canvas.save();
     context.canvas.translate(center.dx, center.dy);
     context.canvas.scale(_scale, _scale);
-    final canPaintBound = Rect.fromLTRB(
-        (-size.width / 2 - cachePaintOffset) / _scale,
-        (-size.height / 2 - cachePaintOffset) / _scale,
-        (size.width / 2 + cachePaintOffset) / _scale,
-        (size.height / 2 + cachePaintOffset) / _scale);
 
     RenderBox? child = firstChild;
     while (child != null) {
@@ -488,6 +586,12 @@ class ForceDirectedGraphRenderObject extends RenderBox
       _draggingNode = null;
     }
   }
+}
+
+class PaintBoundChangeNotification extends Notification {
+  final Rect paintBound;
+
+  PaintBoundChangeNotification(this.paintBound);
 }
 
 class ForceDirectedGraphParentData extends ContainerBoxParentData<RenderBox> {
