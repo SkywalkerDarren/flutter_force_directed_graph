@@ -196,10 +196,6 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       );
     });
 
-    if (nodes.isEmpty) {
-      return Container();
-    }
-
     return GestureDetector(
       onScaleStart: (details) {
         _scale = _controller.scale;
