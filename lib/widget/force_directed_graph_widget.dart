@@ -34,7 +34,7 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
     this.onDraggingStart,
     this.onDraggingUpdate,
     this.onDraggingEnd,
-  });
+  }) : assert(cachePaintOffset >= 0);
 
   /// The controller of the graph.
   final ForceDirectedGraphController<T> controller;
