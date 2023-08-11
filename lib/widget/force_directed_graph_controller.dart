@@ -32,7 +32,10 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
         _minScale = minScale,
         _maxScale = maxScale;
 
+  /// Min scale of the graph.
   double _minScale;
+
+  /// Max scale of the graph.
   double _maxScale;
 
   double get minScale => _minScale;
