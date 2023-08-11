@@ -44,5 +44,44 @@ void main() {
       expect(fdg2.nodes.length, fdg.nodes.length);
       expect(fdg2.edges.length, fdg.edges.length);
     });
+
+    test("fdg serialize json", () {
+      int i = 0;
+      final fdg = ForceDirectedGraph.generateNTree(
+          nodeCount: 50, maxDepth: 3, n: 3, generator: () => _TestModel(i++));
+      final json = fdg.toJson(serializeData: (data) => data.toJson());
+      final fdg2 = ForceDirectedGraph.fromJson(json,
+          deserializeData: (json) => _TestModel.fromJson(json));
+      expect(fdg2.nodes.length, fdg.nodes.length);
+      expect(fdg2.edges.length, fdg.edges.length);
+    });
   });
+}
+
+class _TestModel {
+  final int id;
+
+  _TestModel(this.id);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+    };
+  }
+
+  factory _TestModel.fromJson(Map<String, dynamic> json) {
+    return _TestModel(json['id']);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is _TestModel) {
+      return id == other.id;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
 }
