@@ -27,6 +27,11 @@ void main() {
 
       final edge3 = Edge(nodeB, nodeA);
       expect(edge2, edge3);
+
+      final set = <Edge>{};
+      set.add(edge2);
+      set.add(edge3);
+      expect(set.length, 1);
     });
 
     test('Edge distance calculation', () {
