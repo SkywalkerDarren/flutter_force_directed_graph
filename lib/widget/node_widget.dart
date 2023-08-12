@@ -16,6 +16,8 @@ class NodeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
     parentData.node = node;
   }
 
+  // coverage:ignore-start
   @override
   Type get debugTypicalAncestorWidgetClass => ForceDirectedGraphBody;
+  // coverage:ignore-end
 }

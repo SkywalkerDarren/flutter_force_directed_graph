@@ -19,6 +19,8 @@ class EdgeWidget extends ParentDataWidget<ForceDirectedGraphParentData> {
     parentData.edge = edge;
   }
 
+  // coverage:ignore-start
   @override
   Type get debugTypicalAncestorWidgetClass => ForceDirectedGraphBody;
+  // coverage:ignore-end
 }

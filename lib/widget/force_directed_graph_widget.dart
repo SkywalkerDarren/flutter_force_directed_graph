@@ -320,8 +320,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
     onPaintBoundChange(value);
   }
 
-  Rect get canPaintBound => _canPaintBound;
-
   double _scale;
 
   set scale(double value) {
@@ -395,22 +393,6 @@ class ForceDirectedGraphRenderObject extends RenderBox
   Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
 
   @override
-  double computeMaxIntrinsicHeight(double width) =>
-      width.isInfinite ? 0 : width;
-
-  @override
-  double computeMaxIntrinsicWidth(double height) =>
-      height.isInfinite ? 0 : height;
-
-  @override
-  double computeMinIntrinsicHeight(double width) =>
-      width.isInfinite ? 0 : width;
-
-  @override
-  double computeMinIntrinsicWidth(double height) =>
-      height.isInfinite ? 0 : height;
-
-  @override
   void paint(PaintingContext context, Offset offset) {
     final center = offset + size.center(Offset.zero);
     context.canvas.save();
@@ -465,7 +447,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..rotateZ(edge.angle)
           ..translate(-childCenter.dx, -childCenter.dy);
       } else {
-        throw Exception('Unknown child');
+        throw Exception('Unknown child'); // coverage:ignore-line
       }
       context.canvas.restore();
       child = parentData.nextSibling;
