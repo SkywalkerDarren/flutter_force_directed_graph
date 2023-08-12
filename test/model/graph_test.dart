@@ -76,7 +76,6 @@ void main() {
       fdg.addNode(nodeB);
       fdg.addNode(nodeC);
 
-
       fdg.addEdge(nodeA.connect(nodeB));
       fdg.addEdge(nodeA.connect(nodeC));
       fdg.addEdge(nodeB.connect(nodeC));
@@ -153,5 +152,4 @@ class _TestModel {
 
   @override
   int get hashCode => id.hashCode;
-
 }
