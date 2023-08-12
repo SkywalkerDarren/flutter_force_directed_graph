@@ -1,4 +1,4 @@
-name: Push check
+name: CI
 
 permissions:
   pull-requests: write
