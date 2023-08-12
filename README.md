@@ -4,7 +4,8 @@ Flutter Force Directed Graph is a Flutter package that helps you create a force 
 visualization in your Flutter applications.
 
 [![](https://img.shields.io/pub/v/flutter_force_directed_graph.svg)](https://pub.dartlang.org/packages/flutter_force_directed_graph)
-[![](https://github.com/SkywalkerDarren/flutter_force_directed_graph/actions/workflows/publish.yaml/badge.svg)](https://pub.dartlang.org/packages/flutter_force_directed_graph)
+[![](https://github.com/SkywalkerDarren/flutter_force_directed_graph/actions/workflows/publish.yaml/badge.svg)](https://github.com/SkywalkerDarren/flutter_force_directed_graph)
+[![codecov](https://codecov.io/gh/SkywalkerDarren/flutter_force_directed_graph/branch/master/graph/badge.svg?token=8NJUB2SSyz)](https://codecov.io/gh/SkywalkerDarren/flutter_force_directed_graph)
 
 ## Features
 
@@ -26,7 +27,7 @@ Add the following in your `pubspec.yaml` file under `dependencies`:
 
 ```yaml
 dependencies:
-  flutter_force_directed_graph: ^1.0.3
+  flutter_force_directed_graph: ^1.0.5
 ```
 
 Then install it by running `flutter pub get` in your terminal.
