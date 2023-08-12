@@ -13,7 +13,7 @@ jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 
-  publish:
+  publish-test:
     needs: health
     runs-on: ubuntu-latest
     steps:
@@ -23,5 +23,11 @@ jobs:
         with:
           channel: 'stable'
       - run: flutter pub get
-      - run: flutter test -v
+      - run: flutter test --coverage -v
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/
+          flags: unittests
+          name: model unit tests
       - run: flutter pub publish --dry-run
