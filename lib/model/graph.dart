@@ -8,6 +8,9 @@ import 'edge.dart';
 import 'kd_tree.dart';
 import 'node.dart';
 
+typedef NodeDataSerializer<T> = dynamic Function(T data);
+typedef NodeDataDeserializer<T> = T Function(dynamic data);
+
 class ForceDirectedGraph<T> {
   final List<Node<T>> nodes = [];
   final List<Edge> edges = [];
@@ -52,13 +55,17 @@ class ForceDirectedGraph<T> {
   /// [resetPosition] will reset the position of the nodes.
   ForceDirectedGraph.fromJson(
     String json, {
+    NodeDataDeserializer<T>? deserializeData,
     bool resetPosition = false,
     this.config = const GraphConfig(),
   }) {
     final data = jsonDecode(json);
     final nodeMap = <T, Node<T>>{};
     for (final nodeData in data['nodes']) {
-      final node = Node(nodeData['data'] as T);
+      final actualData = deserializeData == null
+          ? nodeData['data'] as T
+          : deserializeData(nodeData['data']);
+      final node = Node(actualData);
       if (!resetPosition && nodeData['position'] != null) {
         node.position =
             Vector2(nodeData['position']['x'], nodeData['position']['y']);
@@ -67,8 +74,14 @@ class ForceDirectedGraph<T> {
       nodeMap[node.data] = node;
     }
     for (final edgeData in data['edges']) {
-      final a = nodeMap[edgeData['a']];
-      final b = nodeMap[edgeData['b']];
+      final actualDataA = deserializeData == null
+          ? edgeData['a'] as T
+          : deserializeData(edgeData['a']);
+      final actualDataB = deserializeData == null
+          ? edgeData['b'] as T
+          : deserializeData(edgeData['b']);
+      final a = nodeMap[actualDataA];
+      final b = nodeMap[actualDataB];
       if (a != null && b != null) {
         final edge = Edge(a, b);
         edges.add(edge);
@@ -181,18 +194,18 @@ class ForceDirectedGraph<T> {
     return "\nnodes:\n$nodes,\nedges:\n$edges";
   }
 
-  String toJson() {
+  String toJson({NodeDataSerializer<T>? serializeData}) {
     return jsonEncode({
       'nodes': nodes
           .map((e) => {
-                'data': e.data,
+                'data': serializeData == null ? e.data : serializeData(e.data),
                 'position': {'x': e.position.x, 'y': e.position.y},
               })
           .toList(),
       'edges': edges
           .map((e) => {
-                'a': e.a.data,
-                'b': e.b.data,
+                'a': serializeData == null ? e.a.data : serializeData(e.a.data),
+                'b': serializeData == null ? e.b.data : serializeData(e.b.data),
               })
           .toList(),
     });

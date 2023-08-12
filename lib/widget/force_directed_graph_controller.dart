@@ -21,11 +21,38 @@ class ForceDirectedGraphController<T> extends ChangeNotifier {
   /// Get graph.
   ForceDirectedGraph<T> get graph => _graph;
 
-  ForceDirectedGraphController({ForceDirectedGraph<T>? graph})
-      : _graph = graph ?? ForceDirectedGraph();
+  ForceDirectedGraphController(
+      {ForceDirectedGraph<T>? graph,
+      double minScale = 0.1,
+      double maxScale = 2.0})
+      : _graph = graph ?? ForceDirectedGraph(),
+        assert(minScale <= maxScale),
+        assert(minScale > 0),
+        assert(maxScale > 0),
+        _minScale = minScale,
+        _maxScale = maxScale;
 
-  final double minScale = 0.1;
-  final double maxScale = 2.0;
+  /// Min scale of the graph.
+  double _minScale;
+
+  /// Max scale of the graph.
+  double _maxScale;
+
+  double get minScale => _minScale;
+
+  double get maxScale => _maxScale;
+
+  set minScale(double minScale) {
+    assert(minScale <= _maxScale);
+    assert(minScale > 0);
+    _minScale = minScale;
+  }
+
+  set maxScale(double maxScale) {
+    assert(maxScale >= _minScale);
+    assert(maxScale > 0);
+    _maxScale = maxScale;
+  }
 
   double _scale = 1.0;
 

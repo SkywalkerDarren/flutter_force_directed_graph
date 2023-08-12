@@ -34,7 +34,7 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
     this.onDraggingStart,
     this.onDraggingUpdate,
     this.onDraggingEnd,
-  });
+  }) : assert(cachePaintOffset >= 0);
 
   /// The controller of the graph.
   final ForceDirectedGraphController<T> controller;
@@ -69,7 +69,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   ForceDirectedGraphController<T> get _controller => widget.controller;
   late Ticker _ticker;
   double _scale = 1.0;
-  Rect? paintBound;
+  Rect paintBound = Rect.zero;
 
   @override
   void initState() {
@@ -111,7 +111,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     super.didUpdateWidget(oldWidget);
   }
 
-  bool isLineIntersectsRect(Offset p1, Offset p2, Rect rect) {
+  bool _isLineIntersectsRect(Offset p1, Offset p2, Rect rect) {
     // Rect four corners
     Offset topLeft = rect.topLeft;
     Offset topRight = rect.topRight;
@@ -119,17 +119,17 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     Offset bottomRight = rect.bottomRight;
 
     // Check if the line segment intersects any of the sides of the Rect
-    return isLineIntersect(p1, p2, topLeft, topRight) ||
-        isLineIntersect(p1, p2, topLeft, bottomLeft) ||
-        isLineIntersect(p1, p2, topRight, bottomRight) ||
-        isLineIntersect(p1, p2, bottomLeft, bottomRight);
+    return _isLineIntersect(p1, p2, topLeft, topRight) ||
+        _isLineIntersect(p1, p2, topLeft, bottomLeft) ||
+        _isLineIntersect(p1, p2, topRight, bottomRight) ||
+        _isLineIntersect(p1, p2, bottomLeft, bottomRight);
   }
 
-  bool isLineIntersect(Offset p1, Offset p2, Offset q1, Offset q2) {
-    double cross1 = crossProduct(p1, p2, q1);
-    double cross2 = crossProduct(p1, p2, q2);
-    double cross3 = crossProduct(q1, q2, p1);
-    double cross4 = crossProduct(q1, q2, p2);
+  bool _isLineIntersect(Offset p1, Offset p2, Offset q1, Offset q2) {
+    double cross1 = _crossProduct(p1, p2, q1);
+    double cross2 = _crossProduct(p1, p2, q2);
+    double cross3 = _crossProduct(q1, q2, p1);
+    double cross4 = _crossProduct(q1, q2, p2);
 
     // If the two cross products have different signs,
     // then the line segments are on opposite sides of the rectangle,
@@ -137,7 +137,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     return (cross1 * cross2 < 0) && (cross3 * cross4 < 0);
   }
 
-  double crossProduct(Offset a, Offset b, Offset c) {
+  double _crossProduct(Offset a, Offset b, Offset c) {
     // Calculate the cross product of vectors AB and AC
     double y1 = b.dy - a.dy;
     double x1 = b.dx - a.dx;
@@ -147,7 +147,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     return (x1 * y2) - (x2 * y1);
   }
 
-  bool inRect(Offset offset, Rect rect) {
+  bool _inRect(Offset offset, Rect rect) {
     return offset.dx >= rect.left &&
         offset.dx <= rect.right &&
         offset.dy >= rect.top &&
@@ -157,11 +157,8 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
   @override
   Widget build(BuildContext context) {
     final nodes = _controller.graph.nodes.where((element) {
-      if (paintBound == null) {
-        return true;
-      }
       final offset = Offset(element.position.x, element.position.y);
-      return inRect(offset, paintBound!);
+      return _inRect(offset, paintBound);
     }).map((e) {
       final child = widget.nodesBuilder(context, e.data);
       if (child is NodeWidget) {
@@ -175,14 +172,11 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     });
 
     final edges = _controller.graph.edges.where((element) {
-      if (paintBound == null) {
-        return true;
-      }
       final a = Offset(element.a.position.x, element.a.position.y);
       final b = Offset(element.b.position.x, element.b.position.y);
-      return inRect(a, paintBound!) ||
-          inRect(b, paintBound!) ||
-          isLineIntersectsRect(a, b, paintBound!);
+      return _inRect(a, paintBound) ||
+          _inRect(b, paintBound) ||
+          _isLineIntersectsRect(a, b, paintBound);
     }).map((e) {
       final child =
           widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
@@ -331,6 +325,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
   double _scale;
 
   set scale(double value) {
+    if (value == _scale) {
+      return;
+    }
     _scale = value;
     canPaintBound = Rect.fromLTRB(
         (-size.width / 2 - cachePaintOffset) / _scale,
@@ -343,6 +340,9 @@ class ForceDirectedGraphRenderObject extends RenderBox
   double _cachePaintOffset;
 
   set cachePaintOffset(double value) {
+    if (value == _cachePaintOffset) {
+      return;
+    }
     _cachePaintOffset = value;
     canPaintBound = Rect.fromLTRB(
         (-size.width / 2 - cachePaintOffset) / _scale,
@@ -373,14 +373,19 @@ class ForceDirectedGraphRenderObject extends RenderBox
     }
   }
 
+  Size? _oldSize;
+
   @override
   void performResize() {
     super.performResize();
-    canPaintBound = Rect.fromLTRB(
-        (-size.width / 2 - cachePaintOffset) / _scale,
-        (-size.height / 2 - cachePaintOffset) / _scale,
-        (size.width / 2 + cachePaintOffset) / _scale,
-        (size.height / 2 + cachePaintOffset) / _scale);
+    if (_oldSize != size) {
+      canPaintBound = Rect.fromLTRB(
+          (-size.width / 2 - cachePaintOffset) / _scale,
+          (-size.height / 2 - cachePaintOffset) / _scale,
+          (size.width / 2 + cachePaintOffset) / _scale,
+          (size.height / 2 + cachePaintOffset) / _scale);
+      _oldSize = size;
+    }
   }
 
   @override
@@ -470,7 +475,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
 
   // hit logic ================================================================
 
-  Node? _draggingNode;
+  Node? _hitNode;
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
@@ -487,7 +492,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       if (isHit) {
         if (childParentData.node != null) {
           if (!_isDragging) {
-            _draggingNode = childParentData.node;
+            _hitNode = childParentData.node;
           }
         }
         return true;
@@ -495,7 +500,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
       child = childParentData.previousSibling;
     }
     if (!_isDragging) {
-      _draggingNode = null;
+      _hitNode = null;
     }
     return false;
   }
@@ -510,20 +515,20 @@ class ForceDirectedGraphRenderObject extends RenderBox
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
     assert(debugHandleEvent(event, entry));
     if (event is PointerDownEvent) {
-      if (_draggingNode != null) {
+      if (_hitNode != null) {
         _isDragging = true;
-        onDraggingStart(_draggingNode!.data);
-        _downPosition = _draggingNode!.position;
+        onDraggingStart(_hitNode!.data);
+        _downPosition = _hitNode!.position;
         _graph.unStaticAllNodes();
-        _draggingNode!.static();
+        _hitNode!.static();
       }
     } else if (event is PointerMoveEvent) {
-      if (_draggingNode != null && _isDragging) {
+      if (_hitNode != null && _isDragging) {
         // move node
-        onDraggingUpdate(_draggingNode!.data);
+        onDraggingUpdate(_hitNode!.data);
         _downPosition = _downPosition! +
             vector.Vector2(event.delta.dx / _scale, -event.delta.dy / _scale);
-        _draggingNode!.position = _downPosition!;
+        _hitNode!.position = _downPosition!;
         markNeedsPaint();
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           controller.needUpdate();
@@ -538,15 +543,15 @@ class ForceDirectedGraphRenderObject extends RenderBox
       }
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       _isDragging = false;
-      if (_draggingNode != null) {
-        _draggingNode?.unStatic();
-        onDraggingEnd(_draggingNode!.data);
+      if (_hitNode != null) {
+        _hitNode?.unStatic();
+        onDraggingEnd(_hitNode!.data);
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           controller.needUpdate();
         });
       }
       _downPosition = null;
-      _draggingNode = null;
+      _hitNode = null;
     }
   }
 }

@@ -46,6 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     ),
   )..setOnScaleChange((scale) {
+          // can use to optimize the performance
+          // if scale is too small, can use simple node and edge builder to improve performance
           if (!mounted) return;
           setState(() {
             _scale = scale;

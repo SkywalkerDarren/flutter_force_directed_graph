@@ -25,3 +25,4 @@
 
 * Add scale change callback
 * Optimize performance
+* Support serialization
