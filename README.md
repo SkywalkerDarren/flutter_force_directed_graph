@@ -4,7 +4,7 @@ Flutter Force Directed Graph is a Flutter package that helps you create a force 
 visualization in your Flutter applications.
 
 [![pub](https://img.shields.io/pub/v/flutter_force_directed_graph.svg)](https://pub.dartlang.org/packages/flutter_force_directed_graph)
-[![CI](https://github.com/SkywalkerDarren/flutter_force_directed_graph/actions/workflows/push.yaml/badge.svg)](https://github.com/SkywalkerDarren/flutter_force_directed_graph)
+[![CI](https://github.com/SkywalkerDarren/flutter_force_directed_graph/actions/workflows/publish.yaml/badge.svg)](https://github.com/SkywalkerDarren/flutter_force_directed_graph)
 [![codecov](https://codecov.io/gh/SkywalkerDarren/flutter_force_directed_graph/branch/master/graph/badge.svg?token=8NJUB2SSyz)](https://codecov.io/gh/SkywalkerDarren/flutter_force_directed_graph)
 
 ## Features
@@ -17,7 +17,11 @@ visualization in your Flutter applications.
 
 ## Demo
 
-![example.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/example.gif)
+![control.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/control.gif)
+![performance.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/performance.gif)
+![position.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/position.gif)
+![scale.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/scale.gif)
+![serialization.gif](https://raw.githubusercontent.com/SkywalkerDarren/flutter_force_directed_graph/master/doc/serialization.gif)
 
 ## Getting Started
 
