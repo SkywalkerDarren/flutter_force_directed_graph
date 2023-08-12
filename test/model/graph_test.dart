@@ -13,14 +13,42 @@ void main() {
       // nodeB.position = Vector2(2, 3);
       final nodeC = Node(3);
       // nodeC.position = Vector2(-2, 2);
+      final nodeD = Node(4);
 
       fdg.addNode(nodeA);
       fdg.addNode(nodeB);
       fdg.addNode(nodeC);
+      fdg.addNode(nodeD);
+
+      bool hasCatch = false;
+      try {
+        fdg.addNode(nodeA);
+      } on Exception catch (e) {
+        hasCatch = true;
+        expect(e, isA<Exception>());
+        expect(e.toString(), contains("Node already exists"));
+      }
+      expect(hasCatch, true);
 
       fdg.addEdge(nodeA.connect(nodeB));
       fdg.addEdge(nodeA.connect(nodeC));
       fdg.addEdge(nodeB.connect(nodeC));
+      fdg.addEdge(nodeC.connect(nodeD));
+
+      hasCatch = false;
+      try {
+        fdg.addEdge(nodeA.connect(nodeB));
+      } on Exception catch (e) {
+        hasCatch = true;
+        expect(e, isA<Exception>());
+        expect(e.toString(), contains("Edge already exists"));
+      }
+      expect(hasCatch, true);
+
+      fdg.deleteEdge(nodeC.connect(nodeD));
+      fdg.deleteNode(nodeD);
+
+      fdg.unStaticAllNodes();
 
       int stepLeft = 120 * 1000;
       while (stepLeft > 0) {
@@ -33,6 +61,48 @@ void main() {
         stepLeft--;
       }
       fail("fdg test failed");
+    });
+
+    test('fdg static test', () {
+      final fdg = ForceDirectedGraph();
+      final nodeA = Node(1);
+      // nodeA.position = Vector2(-1, -1);
+      final nodeB = Node(2);
+      // nodeB.position = Vector2(2, 3);
+      final nodeC = Node(3);
+      // nodeC.position = Vector2(-2, 2);
+
+      fdg.addNode(nodeA);
+      fdg.addNode(nodeB);
+      fdg.addNode(nodeC);
+
+
+      fdg.addEdge(nodeA.connect(nodeB));
+      fdg.addEdge(nodeA.connect(nodeC));
+      fdg.addEdge(nodeB.connect(nodeC));
+
+      nodeA.static();
+
+      int stepLeft = 120 * 1000;
+      while (stepLeft > 0) {
+        if (!fdg.updateAllNodes()) {
+          print("graph: $fdg, stepLeft: $stepLeft");
+          final retry = fdg.updateAllNodes();
+          expect(retry, false);
+          return;
+        }
+        stepLeft--;
+      }
+      fail("fdg test failed");
+    });
+
+    test("fdg generate tree", () {
+      int i = 0;
+      ForceDirectedGraph.generateNTree(
+          nodeCount: 50, maxDepth: 3, n: 3, generator: () => i++);
+
+      i = 0;
+      ForceDirectedGraph.generateNNodes(nodeCount: 50, generator: () => i++);
     });
 
     test("fdg json", () {

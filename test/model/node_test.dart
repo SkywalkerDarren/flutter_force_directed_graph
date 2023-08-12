@@ -47,6 +47,16 @@ void main() {
 
       expect(edge.a, equals(node1));
       expect(edge.b, equals(node2));
+
+      bool hasCatch = false;
+      try {
+        node1.connect(node1);
+      } on Exception catch (e) {
+        hasCatch = true;
+        expect(e, isA<Exception>());
+        expect(e.toString(), contains("Cannot create edge between the same node"));
+      }
+      expect(hasCatch, true);
     });
 
     test('should compare nodes based on their data', () {

@@ -21,6 +21,14 @@ void main() {
       edge = Edge(nodeA, nodeB);
     });
 
+    test('Edge equality', () {
+      final edge2 = Edge(nodeA, nodeB);
+      expect(edge, edge2);
+
+      final edge3 = Edge(nodeB, nodeA);
+      expect(edge2, edge3);
+    });
+
     test('Edge distance calculation', () {
       expect(edge.distance, closeTo(5, 0.0001));
     });
@@ -28,6 +36,11 @@ void main() {
     test('Attraction force calculation', () {
       expect(edge.calculateAttractionForce(k: 10, length: 50),
           closeTo(-450, 0.0001));
+    });
+
+    test('Edge angle', () {
+      expect(edge.angle, closeTo(-0.9272952180016122, 0.0001));
+      expect(edge.rawAngle, closeTo(2.214297435588181, 0.0001));
     });
 
     test('Attraction force direction for node A', () {

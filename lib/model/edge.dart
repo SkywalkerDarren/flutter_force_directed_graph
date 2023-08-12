@@ -8,7 +8,11 @@ class Edge {
   final Node a;
   final Node b;
 
-  Edge(this.a, this.b);
+  Edge(this.a, this.b) {
+    if (a == b) {
+      throw Exception("Cannot create edge between the same node");
+    }
+  }
 
   double get distance => a.position.distanceTo(b.position);
 
