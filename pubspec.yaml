@@ -1,6 +1,6 @@
 name: flutter_force_directed_graph
 description: Flutter Force Directed Graph is a high-performance, customizable Flutter package that helps you create force directed graph visualizations in your Flutter applications.
-version: 1.0.6
+version: 1.0.7
 homepage: https://github.com/SkywalkerDarren
 repository: https://github.com/SkywalkerDarren/flutter_force_directed_graph
 issue_tracker: https://github.com/SkywalkerDarren/flutter_force_directed_graph/issues

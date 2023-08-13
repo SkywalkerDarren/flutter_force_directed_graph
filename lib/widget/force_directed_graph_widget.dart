@@ -29,6 +29,7 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
     super.key,
     required this.controller,
     this.cachePaintOffset = 50,
+    this.edgeAlwaysUp = true,
     required this.nodesBuilder,
     required this.edgesBuilder,
     this.onDraggingStart,
@@ -43,6 +44,9 @@ class ForceDirectedGraphWidget<T> extends StatefulWidget {
   /// When the center of the node is out of the screen by more than this offset,
   /// the drawing will stop.
   final double cachePaintOffset;
+
+  /// Whether the edges are always up.
+  final bool edgeAlwaysUp;
 
   /// The builder of the nodes.
   final NodeBuilder<T> nodesBuilder;
@@ -161,10 +165,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
       return _inRect(offset, paintBound);
     }).map((e) {
       final child = widget.nodesBuilder(context, e.data);
-      if (child is NodeWidget) {
-        assert(child.node == e);
-        return child;
-      }
+      assert(child is! NodeWidget);
       return NodeWidget(
         node: e,
         child: child,
@@ -180,10 +181,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     }).map((e) {
       final child =
           widget.edgesBuilder(context, e.a.data, e.b.data, e.distance);
-      if (child is EdgeWidget) {
-        assert(child.edge == e);
-        return child;
-      }
+      assert(child is! EdgeWidget);
       return EdgeWidget(
         edge: e,
         child: child,
@@ -211,6 +209,7 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
               cachePaintOffset: widget.cachePaintOffset,
               graph: _controller.graph,
               scale: _controller.scale,
+              edgeAlwaysUp: widget.edgeAlwaysUp,
               nodes: nodes,
               edges: edges,
               onDraggingStart: (data) {
@@ -235,6 +234,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
   final ForceDirectedGraphController controller;
   final double scale;
   final double cachePaintOffset;
+  final bool edgeAlwaysUp;
   final void Function(dynamic data) onDraggingStart;
   final void Function(dynamic data) onDraggingEnd;
   final void Function(dynamic data) onDraggingUpdate;
@@ -244,6 +244,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
     required this.controller,
     required this.graph,
     required this.scale,
+    required this.edgeAlwaysUp,
     required Iterable<NodeWidget> nodes,
     required Iterable<EdgeWidget> edges,
     required this.onDraggingUpdate,
@@ -258,6 +259,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
       graph: graph,
       scale: scale,
       cachePaintOffset: cachePaintOffset,
+      edgeAlwaysUp: edgeAlwaysUp,
       controller: controller,
       onDraggingUpdate: onDraggingUpdate,
       onDraggingStart: onDraggingStart,
@@ -274,6 +276,7 @@ class ForceDirectedGraphBody extends MultiChildRenderObjectWidget {
     renderObject
       ..graph = graph
       ..cachePaintOffset = cachePaintOffset
+      ..edgeAlwaysUp = edgeAlwaysUp
       ..scale = scale;
   }
 }
@@ -287,6 +290,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
     required ForceDirectedGraph graph,
     required double cachePaintOffset,
     required double scale,
+    required bool edgeAlwaysUp,
     required this.controller,
     required this.onDraggingUpdate,
     required this.onDraggingStart,
@@ -294,6 +298,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
     required this.onPaintBoundChange,
   })  : _graph = graph,
         _cachePaintOffset = cachePaintOffset,
+        _edgeAlwaysUp = edgeAlwaysUp,
         _scale = scale;
 
   final ForceDirectedGraphController controller;
@@ -351,6 +356,18 @@ class ForceDirectedGraphRenderObject extends RenderBox
   }
 
   double get cachePaintOffset => _cachePaintOffset;
+
+  bool _edgeAlwaysUp;
+
+  set edgeAlwaysUp(bool value) {
+    if (value == _edgeAlwaysUp) {
+      return;
+    }
+    _edgeAlwaysUp = value;
+    markNeedsPaint();
+  }
+
+  bool get edgeAlwaysUp => _edgeAlwaysUp;
 
   // layout and paint logic ==============================================================
 
@@ -429,9 +446,10 @@ class ForceDirectedGraphRenderObject extends RenderBox
         final moveOffset = Offset(edgeCenter.x, -edgeCenter.y);
         final finalOffset = -childCenter + moveOffset;
 
+        final angle = edgeAlwaysUp ? edge.angle : edge.rawAngle;
         context.canvas
           ..translate(moveOffset.dx, moveOffset.dy)
-          ..rotate(edge.angle)
+          ..rotate(angle)
           ..translate(-moveOffset.dx, -moveOffset.dy);
         context.paintChild(child, finalOffset);
 
@@ -444,7 +462,7 @@ class ForceDirectedGraphRenderObject extends RenderBox
           ..translate(-center.dx, -center.dy)
           ..translate(
               childOffset.dx + childCenter.dx, childOffset.dy + childCenter.dy)
-          ..rotateZ(edge.angle)
+          ..rotateZ(angle)
           ..translate(-childCenter.dx, -childCenter.dy);
       } else {
         throw Exception('Unknown child'); // coverage:ignore-line

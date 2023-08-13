@@ -6,5 +6,3 @@ export 'model/node.dart';
 export 'model/edge.dart';
 export 'model/graph.dart';
 export 'model/config.dart';
-export 'widget/node_widget.dart';
-export 'widget/edge_widget.dart';

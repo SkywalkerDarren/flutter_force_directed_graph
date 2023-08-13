@@ -55,8 +55,6 @@ void main() {
       final wrapper = MaterialApp(home: fdgw);
       widgetTester.view.physicalSize = const Size(800, 600);
       await widgetTester.pumpWidget(wrapper);
-      final size = widgetTester.getSize(find.byWidget(fdgw));
-      print("size: $size");
       controller.needUpdate();
       await widgetTester.pumpAndSettle(const Duration(seconds: 5));
       print(controller.graph);
@@ -116,9 +114,9 @@ void main() {
       int i = 0;
       final b = ForceDirectedGraphController(
         graph: ForceDirectedGraph.generateNTree(
-          nodeCount: 3,
-          maxDepth: 3,
-          n: 3,
+          nodeCount: 50,
+          maxDepth: 5,
+          n: 5,
           generator: () {
             i++;
             return i;
@@ -129,7 +127,7 @@ void main() {
       i = 0;
       final c = ForceDirectedGraphController(
         graph: ForceDirectedGraph.generateNNodes(
-          nodeCount: 3,
+          nodeCount: 50,
           generator: () {
             i++;
             return i;
@@ -143,10 +141,13 @@ void main() {
 
       int intrinsicType = 0;
 
+      bool edgeAlwaysUp = true;
+
       void Function(void Function())? setter;
       final wrapper = StatefulBuilder(builder: (context, setState) {
         setter = setState;
         Widget child = ForceDirectedGraphWidget(
+          edgeAlwaysUp: edgeAlwaysUp,
           cachePaintOffset: cachePaintOffset,
           controller: controller,
           nodesBuilder: (context, data) {
@@ -193,17 +194,21 @@ void main() {
       });
 
       await widgetTester.pumpWidget(wrapper);
-      await widgetTester.pumpAndSettle();
+      await widgetTester.pumpAndSettle(const Duration(milliseconds: 10));
       setter?.call(() {
         controller = b;
         cachePaintOffset = 20;
+        edgeAlwaysUp = true;
       });
-      await widgetTester.pumpAndSettle();
+      await widgetTester.pumpAndSettle(const Duration(milliseconds: 10));
+      controller.needUpdate();
+      await widgetTester.pump(const Duration(milliseconds: 10));
       setter?.call(() {
         controller = c;
         cachePaintOffset = 30;
+        edgeAlwaysUp = false;
       });
-      await widgetTester.pumpAndSettle();
+      await widgetTester.pumpAndSettle(const Duration(milliseconds: 10));
       setter?.call(() {
         intrinsicType = 1;
       });

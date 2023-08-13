@@ -34,3 +34,7 @@
 ## 1.0.6
 
 * Update README.md
+
+## 1.0.7
+
+* Support whether edge always up
