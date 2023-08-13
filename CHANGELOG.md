@@ -21,12 +21,16 @@
 * Fix dragging bug
 * Fix node and edge widget constraint
 
-# 1.0.4
+## 1.0.4
 
 * Add scale change callback
 * Optimize performance
 * Support serialization
 
-# 1.0.5
+## 1.0.5
+
+* Update README.md
+
+## 1.0.6
 
 * Update README.md
