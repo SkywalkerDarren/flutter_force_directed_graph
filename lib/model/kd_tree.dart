@@ -2,6 +2,10 @@ import 'package:vector_math/vector_math.dart';
 
 import 'node.dart';
 
+// A Class implementing the concept of [KDNode], a node within a [KDTree], and
+// holding references to the left and right child nodes ([KDNode] instances), as
+// well as the dimension of the split. Furthermore, it holds a reference to the
+// [Node] it represents in the graph.
 class KDNode {
   Node node;
   KDNode? left;
@@ -13,11 +17,29 @@ class KDNode {
   KDNode(this.node, {this.left, this.right});
 }
 
+/// A class implementing the concept of a kd-tree. A kd-tree is a binary tree that
+/// splits the space in k dimensions. It is used to store points in k-dimensional
+/// space and efficiently answer nearest neighbor queries.
+///
+/// Nodes in a [KDTree] are implemented by [KDNode].
+///
+/// References:
+/// [Bio informatics lecture notes from CMU](https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf)
+/// [English Wikipedia article about kd-trees](https://en.wikipedia.org/wiki/K-d_tree)
+/// [CS168: The Modern Algorithmic Toolbox Lecture #3: Similarity Metrics and kd-Trees](https://web.stanford.edu/class/cs168/l/l3.pdf)
 class KDTree {
   static const dim = 2;
   KDNode? _root;
   final bool _useVariance;
 
+  /// Construct a [KDTree] from a list of [Node] instances.
+  ///
+  /// It takes the forementioned list of nodes and an optional parameter [useVariance].
+  /// The [Node] instances are mapped to [KDNode] instances for use in the kd-tree
+  /// algorithms.
+  ///
+  /// For more information, also about the concept of `variance` please refere
+  /// to the documents linked above.
   KDTree.fromNode(List<Node> nodes, [bool useVariance = true])
       : _useVariance = useVariance {
     _root = _buildTree(nodes.map((e) => KDNode(e)).toList(), 0);
