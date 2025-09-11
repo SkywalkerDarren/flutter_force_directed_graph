@@ -38,3 +38,7 @@
 ## 1.0.7
 
 * Support whether edge always up
+
+## 1.0.8
+
+* Fix bug
