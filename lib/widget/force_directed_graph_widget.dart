@@ -99,7 +99,9 @@ class _ForceDirectedGraphState<T> extends State<ForceDirectedGraphWidget<T>>
     if (!isMoving) {
       _ticker.stop();
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
